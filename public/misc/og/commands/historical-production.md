@@ -1,1 +1,0 @@
-![Alt text](misc/og/commands/historical-production.jpg)

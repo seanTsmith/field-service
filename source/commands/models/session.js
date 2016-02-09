@@ -20,9 +20,9 @@
   /**
    * force
    */
-  setTimeout(function () {
-    sessionCommand.execute(ui);
-  }, 0);
+  //setTimeout(function () {
+  //  sessionCommand.execute(ui);
+  //}, 0);
 
 
 }());

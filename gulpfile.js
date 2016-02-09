@@ -27,24 +27,6 @@ gulp.task('buildDesktopLib', function () {
     .pipe(gulp.dest('public/lib'));
 });
 
-// Build Mobile Lib
-var mobileLib = [
-  'node_modules/tgi-core/lib/_packaging/lib-header',
-  'node_modules/tgi-core/dist/tgi.core.chunk.js',
-  'node_modules/tgi-interface-framework7/dist/tgi.interface.framework7.chunk.js',
-  'node_modules/tgi-store-local/dist/tgi.store.local.chunk.js',
-  'node_modules/tgi-store-remote/dist/tgi.store.remote.chunk.js',
-  'node_modules/tgi-core/lib/_packaging/lib-footer'
-];
-gulp.task('buildMobileLib', function () {
-  return gulp.src(mobileLib)
-    .pipe(concat('mobile.js'))
-    .pipe(gulp.dest('public/lib'))
-    .pipe(rename('mobile.min.js'))
-    .pipe(uglify())
-    .pipe(gulp.dest('public/lib'));
-});
-
 // Build Server Lib
 var serverLib = [
   'node_modules/tgi-core/lib/_packaging/lib-header',

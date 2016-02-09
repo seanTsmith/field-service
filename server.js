@@ -17,6 +17,7 @@ app.use(serveStatic('public'));
 //app.use(serveIndex('public', {icons: true}));
 app.use(serveStatic('source'));
 //app.use(serveIndex('source', {icons: true}));
+app.use(serveStatic('import'));
 app.use(errorHandler({dumpExceptions: true, showStack: true}));
 
 app.use(function (req, res, next) { // 404 equiv
@@ -63,7 +64,7 @@ var MongoStore = TGI.STORE.MONGODB().MongoStore;
 var mongoStore = new MongoStore({name: 'www.tgi.io'});
 var options = {};
 
-options.databaseName = 'siteDatabase';
+options.databaseName = 'fieldServiceDB';
 options.userName = process.env.OPENSHIFT_MONGODB_DB_USERNAME;
 options.password = process.env.OPENSHIFT_MONGODB_DB_PASSWORD;
 options.authdb = 'admin';

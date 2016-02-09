@@ -1,7 +1,7 @@
 {
-  "name": "www.tgi.io",
+  "name": "field-service",
   "version": "0.0.1",
-  "description": "website for tgi.io",
+  "description": "field service app",
   "dependencies": {
     "socket.io": "*",
     "express": "^4.1.2",
@@ -23,10 +23,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tgi-io/www.tgi.io"
+    "url": "https://github.com/seanTsmith/field-service"
   },
   "devDependencies": {
     "gulp": "^3.8.7",
+    "xlsjs": "*",
     "gulp-concat": "^2.4.0",
     "gulp-jshint": "^1.8.4",
     "gulp-rename": "^1.2.0",

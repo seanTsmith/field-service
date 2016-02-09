@@ -15,4 +15,10 @@ Search
 - model.search.filter = {}; 
 - model.search.attributes = []; 
 - model.search.prepareCallback = f()
-- model.search.executeCallback = f()
+- model.search.executeCallback = f(
+
+FOR DATA CONVERT
+===
+sudo npm install xlsjs -g
+export as 2003 from access then
+xls Customers.xls -j > Customers.json

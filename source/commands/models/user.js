@@ -20,8 +20,8 @@
   /**
    * force
    */
-  setTimeout(function () {
-    userCommand.execute(ui);
-  }, 0);
+  //setTimeout(function () {
+  //  userCommand.execute(ui);
+  //}, 0);
 
 }());
