@@ -25,5 +25,5 @@ site.session = new tgi.Session();
  * get app interface ready
  */
 app.setInterface(ui);
-app.set('brand', 'tgi.io');
+app.set('brand', 'field service');
 app.setPresentation(site.nav);

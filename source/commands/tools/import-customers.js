@@ -32,13 +32,10 @@
           function () {
           var task = this;
           try {
-
             function doit() {
               if (recno<records.length) {
                 var record = records[recno];
-                console.log('record #' + recno);
                 recno++;
-
                 customer = new site.Customer();
                 customer.set('name', record.NAME || '');
                 customer.set('firstName', record.FNAME || '');
@@ -47,7 +44,6 @@
                 customer.set('state', record.STATE || '');
                 customer.set('zip', record.ZIP || '');
                 customer.set('invoice', record.SC || '');
-
                 site.hostStore.putModel(customer, function (model, error) {
                   if (typeof error != 'undefined') {
                     app.err('error putting customer ' + customer.get('name') + ': ' + error);
@@ -60,22 +56,7 @@
                 task.complete();
               }
             }
-
             doit();
-
-            //customer = new site.Customer();
-            //customer.set('name', 'admin');
-            //customer.set('firstName', 'System');
-            //site.hostStore.putModel(customer, function (model, error) {
-            //  if (typeof error != 'undefined') {
-            //    app.err('error creating admin' + error);
-            //    task.abort();
-            //  } else {
-            //    task.complete();
-            //  }
-            //});
-
-
           } catch (e) {
             app.err('error creating customer' + e);
           }
@@ -84,15 +65,14 @@
     })
   });
   importCustomersCommand.onEvent('Completed', function (event) {
-    console.log('wtf');
     if (this.status == 1)
       app.done('Imported successfully.');
     else
       app.warn('Procedure failed.');
   });
   site.toolsMenu.push(importCustomersCommand);
-  setTimeout(function () {
-    importCustomersCommand.execute(ui);
-  }, 0);
+  //setTimeout(function () {
+  //  importCustomersCommand.execute(ui);
+  //}, 0);
 
 }());
