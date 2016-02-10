@@ -6,7 +6,7 @@
 
   var customer;
   var records;
-  var recno=0;
+  var recno = 0;
   var importCustomersCommand = new tgi.Command({
     name: 'import customers', type: 'Procedure', contents: new tgi.Procedure({
       tasks: [
@@ -17,7 +17,7 @@
           function () {
           var task = this;
           $.getJSON('Customers.json', function (data) {
-            records=data;
+            records = data;
             console.log('got bytes ' + data.length);
             task.complete();
           }).fail(function (a, b, c) {
@@ -33,29 +33,36 @@
           var task = this;
           try {
             function doit() {
-              if (recno<records.length) {
+              if (recno < records.length) {
                 var record = records[recno];
                 recno++;
-                customer = new site.Customer();
-                customer.set('name', record.NAME || '');
-                customer.set('firstName', record.FNAME || '');
-                customer.set('address1', record.ADR1 || '');
-                customer.set('city', record.CITY || '');
-                customer.set('state', record.STATE || '');
-                customer.set('zip', record.ZIP || '');
-                customer.set('invoice', record.SC || '');
-                site.hostStore.putModel(customer, function (model, error) {
-                  if (typeof error != 'undefined') {
-                    app.err('error putting customer ' + customer.get('name') + ': ' + error);
-                    task.abort();
-                  } else {
-                    doit();
-                  }
-                });
+                if (record.NAME && tgi.trim(record.NAME).length) {
+                  customer = new site.Customer();
+                  customer.set('name', record.NAME || '');
+                  customer.set('firstName', record.FNAME || '');
+                  customer.set('address1', record.ADR1 || '');
+                  customer.set('city', record.CITY || '');
+                  customer.set('state', record.STATE || '');
+                  customer.set('zip', record.ZIP || '');
+                  customer.set('invoice', record.SC || '');
+                  customer.set('scan', record.PDF || false);
+                  site.hostStore.putModel(customer, function (model, error) {
+                    if (typeof error != 'undefined') {
+                      app.err('error putting customer ' + customer.get('name') + ': ' + error);
+                      task.abort();
+                    } else {
+                      doit();
+                    }
+                  });
+                } else {
+                  doit();
+                }
+
               } else {
                 task.complete();
               }
             }
+
             doit();
           } catch (e) {
             app.err('error creating customer' + e);

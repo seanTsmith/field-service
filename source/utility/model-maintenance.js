@@ -6,7 +6,7 @@ var designToDo_ui = ui;
 
 site.ModelMaintenance = function (ModelConstructor) {
   this.model = new ModelConstructor();
-  this.viewState = 'SEARCH';
+  this.viewState = 'LIST';
 };
 
 site.ModelMaintenance.prototype.preRenderCallback = function (command, callback) {
@@ -93,8 +93,22 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     //self.contents.push('### list');
     try {
       var list = new tgi.List(self.model);
+      list.pickKludge = function (id) {
+        var items = list._items;
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i];
+          if (id == item[0]) {
+            if (item[8]) {
+              window.open("invoices/" + item[7] + ".pdf", "_blank");
+            } else {
+              app.err('Scanned invoice unavailable.');
+            }
+          }
+        }
+      };
+
       //site.hostStore.getList(list, {name: /^X/i}, {}, function (list, error) {
-      site.hostStore.getList(list, {}, {}, function (list, error) {
+      site.hostStore.getList(list, {}, {name:1}, function (list, error) {
         if (typeof error != 'undefined') {
           self.contents.push('#### ' + e);
           console.log('' + e);

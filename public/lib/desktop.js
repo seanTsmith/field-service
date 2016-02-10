@@ -3568,7 +3568,9 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
       $(tBodyRow).data("id", list.get(idAttribute.name));
       $(tBodyRow).click(function (e) {
         // bootstrapInterface.dispatch(new Request({type: 'Command', command: action}));
-        bootstrapInterface.info('you picked #' + $(e.currentTarget).data("id"));
+        // bootstrapInterface.info('you picked #' + $(e.currentTarget).data("id"));
+        if (list.pickKludge)
+          list.pickKludge($(e.currentTarget).data("id")); // too shitty balls
         e.preventDefault();
       });
 

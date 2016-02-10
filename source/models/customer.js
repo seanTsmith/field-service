@@ -16,6 +16,7 @@
     args.attributes.push(new tgi.Attribute({name: 'state', type: 'String(2)'}));
     args.attributes.push(new tgi.Attribute({name: 'zip', type: 'String(10)'}));
     args.attributes.push(new tgi.Attribute({name: 'invoice', type: 'String(10)'}));
+    args.attributes.push(new tgi.Attribute({name: 'scan', type: 'Boolean'}));
     tgi.Model.call(this, args);
     this.modelType = "Customer";
   };
