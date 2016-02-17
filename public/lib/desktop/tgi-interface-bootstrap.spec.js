@@ -106,10 +106,15 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
       spec.example('modelType is set from model in constructor', 'Model', function () {
         return new Attribute.ModelID(new Model()).modelType;
       });
-      spec.example('toString is more descriptive', "ModelID(Model:123)", function () {
+      spec.example('toString is more descriptive', "Model 123", function () {
         var model = new Model();
         model.set('id', 123);
         return new Attribute.ModelID(model).toString();
+      });
+      spec.example('model short name used in string description if applies', 'User Error', function () {
+        var user = new User();
+        user.set('name','Error');
+        return new Attribute.ModelID(user).toString();
       });
     });
   });
@@ -151,6 +156,12 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
       spec.paragraph('hint properties give guidance in handling of the attribute');
       spec.example('initialized to empty object', 'object', function () {
         return typeof new Attribute({name: 'name', label: 'Name'}).hint;
+      });
+    });
+    spec.heading('hidden', function () {
+      spec.paragraph('Attribute hidden by default');
+      spec.example('hidden set in constructor', undefined, function () {
+        new Attribute({name: 'name', label: 'Name', hidden: '*'});
       });
     });
     spec.heading('quickPick', function () {
@@ -271,7 +282,7 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
           var myModel = new Model();
           var myGroup = new Attribute({name: 'columns', type: 'Group', value: [new Attribute("Name")]});
           var myTable = new Attribute({name: 'bills', type: 'Table', group: myGroup});
-          var myValues = ['Jane Doe', new Date(), true, 18, new Attribute.ModelID(new Model()), [], myTable];
+          var myValues = ['Jane Doe', new Date(), true, 18, new Attribute.ModelID(myModel), [], myTable];
 
           // Loop thru each type
           var theGood = 0;
@@ -368,6 +379,15 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
             type: 'Model',
             value: new Attribute.ModelID(new Model())
           }).modelType;
+      });
+      spec.example('set method usage checks for valid type', Error('set error: value must be Attribute.ModelID'), function () {
+        new Attribute(
+          {
+            name: 'Twiggy',
+            type: 'Model',
+            value: new Attribute.ModelID(new Model())
+          }).set(1);
+
       });
     });
     spec.heading('Group', function () {
@@ -469,9 +489,9 @@ spec.test('tgi-core/lib/tgi-core-attribute.spec.js', 'Attribute', 'defines data 
         this.shouldBeTrue(myBool.coerce(true) === true && myBool.coerce(1) === true);
         this.shouldBeTrue(myBool.coerce('y') && myBool.coerce('yEs') && myBool.coerce('t') && myBool.coerce('TRUE') && myBool.coerce('1'));
         this.shouldBeTrue(!((myBool.coerce('') || (myBool.coerce('yep')))));
-        //// Date {todo this will break in 2016}
-        this.shouldBeTrue(myDate.coerce('2/21/2015').getTime() === new Date('2/21/2015').getTime());
-        this.shouldBeTrue(myDate.coerce('2/21').getTime() === new Date('2/21/2015').getTime());
+        //// Date {todo this will break in 2017}
+        this.shouldBeTrue(myDate.coerce('2/21/2016').getTime() === new Date('2/21/2016').getTime());
+        this.shouldBeTrue(myDate.coerce('2/21').getTime() === new Date('2/21/2016').getTime());
 
         // TODO
         this.shouldThrowError(Error('coerce cannot determine appropriate value'), function () {
@@ -1067,7 +1087,7 @@ spec.test('tgi-core/lib/tgi-core-delta.spec.js', 'Delta', 'represents changes to
       });
     });
     spec.heading('modelID', function () {
-      spec.example('set from constructor', "ModelID(Model:null)", function () {
+      spec.example('set from constructor', "Model null", function () {
         var delta = new Delta(new Attribute.ModelID(new Model()));
         this.log(delta.dateCreated);
         return delta.modelID.toString();
@@ -1757,7 +1777,7 @@ spec.runnerListStoreIntegration = function (SurrogateStore) {
     // test filter 2 properties (logical AND)
     function getRZ() {
       try {
-        storeBeingTested.getList(test.list, {name: /^R/, isMale: false}, function (list, error) {
+        storeBeingTested.getList(test.list, {name: /^r/i, isMale: false}, function (list, error) {
           if (typeof error != 'undefined') {
             callback(error);
             return;
@@ -1838,13 +1858,13 @@ spec.test('tgi-core/lib/tgi-core-message.spec.js', 'Message', 'between host and 
  * tgi-core/lib/tgi-core-model.spec.js
  */
 spec.test('tgi-core/lib/tgi-core-model.spec.js', 'Model', 'abstracts entities using a collection of attributes', function (callback) {
-  spec.testModel(Model,true);
+  spec.testModel(Model, true);
 });
 
 /**
  * test Model and Models
  */
-spec.testModel = function (SurrogateModel,root) {
+spec.testModel = function (SurrogateModel, root) {
   if (!root) {
     spec.mute(true);
   }
@@ -1958,6 +1978,27 @@ spec.testModel = function (SurrogateModel,root) {
         });
       });
     });
+    spec.heading('getShortName', function () {
+      spec.example('returns short description of model, defaults to first string attribute', 'Shorty', function () {
+        var question = new SurrogateModel({attributes: [new Attribute('name')]});
+        question.attributes[1].value = 'Shorty';
+        return question.getShortName();
+      });
+      spec.example('if no string attribute found empty string returned', '', function () {
+        // Test for model since models may provide attributes to fail this test
+        var question = new Model({attributes: [new Attribute('answer', 'Number')]});
+        question.attributes[1].value = 42;
+        return question.getShortName();
+      });
+    });
+    spec.heading('getLongName', function () {
+      spec.paragraph('note - both getShortName and getLongName should be overriden with method returning desired results when needed.');
+      spec.example('return a more verbose name for model than getShortName', 'Shorty', function () {
+        var question = new SurrogateModel({attributes: [new Attribute('name')]});
+        question.attributes[1].value = 'Shorty';
+        return question.getLongName();
+      });
+    });
     spec.heading('get(attributeName)', function () {
       spec.example('returns undefined if the attribute does not exist', undefined, function () {
         this.shouldBeTrue(new SurrogateModel().get('whatever') === undefined);
@@ -1970,7 +2011,7 @@ spec.testModel = function (SurrogateModel,root) {
     });
     spec.heading('getAttributeType(attributeName)', function () {
       spec.example('returns attribute type for given attribute name', 'Date', function () {
-        return new Model({attributes: [new Attribute('born', 'Date')]}).getAttributeType('born');
+        return new SurrogateModel({attributes: [new Attribute('born', 'Date')]}).getAttributeType('born');
       });
     });
     spec.heading('set(attributeName,value)', function () {
@@ -2580,9 +2621,9 @@ spec.runnerStoreMethods = function (SurrogateStore) {
     });
     spec.heading('getList(model, filter, order)', function () {
       spec.paragraph('This method will clear and populate the list with collection from store.  ' +
-      'The **filter** property can be used to query the store.  ' +
-      'The **order** property can specify the sort order of the list.  ' +
-      '_See integration test for more info._');
+        'The **filter** property can be used to query the store.  ' +
+        'The **order** property can specify the sort order of the list.  ' +
+        '_See integration test for more info._');
       if (services['isReady'] && services['canGetList']) {
         spec.example('returns a List populated from store', undefined, function () {
           this.shouldThrowError(Error('argument must be a List'), function () {
@@ -2606,6 +2647,40 @@ spec.runnerStoreMethods = function (SurrogateStore) {
     });
   });
   spec.heading('Store Integration', function () {
+    spec.example('Check each type', spec.asyncResults(true), function (callback) {
+      var self = this;
+      spec.integrationStore = new SurrogateStore();
+      // If store is not ready then get out...
+      if (!spec.integrationStore.getServices().isReady) {
+        self.log('Store is not ready.');
+        callback(true);
+        return;
+      }
+      self.Types = function (args) {
+        Model.call(this, args);
+        this.modelType = "_tempTypes";
+        this.attributes.push(new Attribute({name: 'String', type: 'String', value: 'cheese'}));
+        this.attributes.push(new Attribute({name: 'Date', type: 'Date', value: new Date()}));
+        this.attributes.push(new Attribute({name: 'Boolean', type: 'Boolean', value: true}));
+        this.attributes.push(new Attribute({name: 'Number', type: 'Number', value: 42}));
+      };
+      self.Types.prototype = Object.create(Model.prototype);
+      self.types = new self.Types();
+      self.types2 = new self.Types();
+      self.types2.copy(self.types);
+      spec.integrationStore.putModel(self.types, function (model, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        self.shouldBeTrue(model.get('String') == self.types2.get('String'));
+        self.shouldBeTrue(model.get('Date') == self.types2.get('Date'));
+        self.shouldBeTrue(model.get('Date') instanceof Date);
+        self.shouldBeTrue(model.get('Boolean') == self.types2.get('Boolean'));
+        self.shouldBeTrue(model.get('Number') == self.types2.get('Number'));
+        callback(true);
+      });
+    });
     spec.heading('CRUD (Create Read Update Delete)', function () {
       spec.example('Exercise all store function for one store.', spec.asyncResults(true), function (callback) {
         var self = this;
@@ -2695,7 +2770,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
           try {
             self.stoogeIDsStored.push(model.get('id'));
             if (self.stoogeIDsStored.length == 3) {
-              self.shouldBeTrue(true,'here');
+              self.shouldBeTrue(true, 'here');
               // Now that first 3 stooges are stored lets retrieve and verify
               var actors = [];
               for (var i = 0; i < 3; i++) {
@@ -2718,10 +2793,10 @@ spec.runnerStoreMethods = function (SurrogateStore) {
           }
           self.stoogesRetrieved.push(model);
           if (self.stoogesRetrieved.length == 3) {
-            self.shouldBeTrue(true,'here');
+            self.shouldBeTrue(true, 'here');
             // Now we have stored and retrieved (via IDs into new objects).  So verify the stooges made it
             self.shouldBeTrue(self.stoogesRetrieved[0] !== self.moe && // Make sure not a reference but a copy
-            self.stoogesRetrieved[0] !== self.larry && self.stoogesRetrieved[0] !== self.shemp,'copy');
+              self.stoogesRetrieved[0] !== self.larry && self.stoogesRetrieved[0] !== self.shemp, 'copy');
             var s = []; // get list of names to see if all stooges made it
             for (var i = 0; i < 3; i++) s.push(self.stoogesRetrieved[i].get('name'));
             self.log(s);
@@ -2752,7 +2827,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
             callback(error);
             return;
           }
-          self.shouldBeTrue(model.get('name') == 'Curly','Curly');
+          self.shouldBeTrue(model.get('name') == 'Curly', 'Curly');
           var curly = new self.Stooge();
           curly.set('id', model.get('id'));
           try {
@@ -2769,7 +2844,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
             callback(error);
             return;
           }
-          self.shouldBeTrue(model.get('name') == 'Curly','Curly');
+          self.shouldBeTrue(model.get('name') == 'Curly', 'Curly');
           // Now test delete
           self.deletedModelId = model.get('id'); // Remember this
           spec.integrationStore.deleteModel(model, stoogeDeleted);
@@ -2808,7 +2883,7 @@ spec.runnerStoreMethods = function (SurrogateStore) {
             // Now create a list from the stooge store
             var list = new List(new self.Stooge());
             try {
-              spec.integrationStore.getList(list, {}, {name:1}, listReady);
+              spec.integrationStore.getList(list, {}, {name: 1}, listReady);
             }
             catch (err) {
               callback(err);
@@ -2823,12 +2898,12 @@ spec.runnerStoreMethods = function (SurrogateStore) {
             callback(error);
             return;
           }
-          self.shouldBeTrue(list instanceof List,'is list');
-          self.shouldBeTrue(list.length() == 2,'is 2');
+          self.shouldBeTrue(list instanceof List, 'is list');
+          self.shouldBeTrue(list.length() == 2, 'is 2');
           list.moveFirst();
-          self.shouldBeTrue(list.get('name') == 'Larry','larry');
+          self.shouldBeTrue(list.get('name') == 'Larry', 'larry');
           list.moveNext();
-          self.shouldBeTrue(list.get('name') == 'Moe','moe');
+          self.shouldBeTrue(list.get('name') == 'Moe', 'moe');
           callback(true);
         }
       });

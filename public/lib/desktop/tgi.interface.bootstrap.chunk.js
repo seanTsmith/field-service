@@ -4,7 +4,7 @@
 TGI.INTERFACE = TGI.INTERFACE || {};
 TGI.INTERFACE.BOOTSTRAP = function () {
   return {
-    version: '0.1.5',
+    version: '0.1.10',
     BootstrapInterface: BootstrapInterface
   };
 };
@@ -734,7 +734,8 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
     var tHeadRow = addEle(tHead, 'tr');
     for (j = 1; j < list.model.attributes.length; j++) { // skip id (0))
       var hAttribute = list.model.attributes[j];
-      addEle(tHeadRow, 'th').innerHTML = hAttribute.label;
+      if (hAttribute.hidden == undefined)
+        addEle(tHeadRow, 'th').innerHTML = hAttribute.label;
     }
 
     /**
@@ -748,31 +749,36 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
       $(tBodyRow).data("id", list.get(idAttribute.name));
       $(tBodyRow).click(function (e) {
         // bootstrapInterface.dispatch(new Request({type: 'Command', command: action}));
-        bootstrapInterface.info('you picked #' + $(e.currentTarget).data("id"));
+        // bootstrapInterface.info('you picked #' + $(e.currentTarget).data("id"));
+        if (list.pickKludge)
+          list.pickKludge($(e.currentTarget).data("id")); // too shitty balls
         e.preventDefault();
       });
 
       for (j = 1; j < list.model.attributes.length; j++) { // skip id (0))
         var dAttribute = list.model.attributes[j];
-        var dValue = list.get(dAttribute.name);
-
-        switch (dAttribute.type) {
-          case 'Date':
-            addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
-            break;
-          case 'Boolean':
-            if (dValue)
-              addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-check-square-o"></i>';
-            else
-              addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-square-o"></i>';
-            break;
-          default:
-            if (dValue && dValue.name) // todo instanceof Attribute.ModelID did not work so kludge here
-              addEle(tBodyRow, 'td').innerHTML = dValue.name;
-            else
-              addEle(tBodyRow, 'td').innerHTML = dValue;
+        if (dAttribute.hidden == undefined) {
+          var dValue = list.get(dAttribute.name);
+          switch (dAttribute.type) {
+            case 'Date':
+              //console.log('dValue=' + dValue);
+              // addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
+              // addEle(tBodyRow, 'td').innerHTML = dValue.toString(); // todo use moment.js
+              addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
+              break;
+            case 'Boolean':
+              if (dValue)
+                addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-check-square-o"></i>';
+              else
+                addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-square-o"></i>';
+              break;
+            default:
+              if (dValue && dValue.name) // todo instanceof Attribute.ModelID did not work so kludge here
+                addEle(tBodyRow, 'td').innerHTML = dValue.name;
+              else
+                addEle(tBodyRow, 'td').innerHTML = dValue;
+          }
         }
-
       }
       gotData = list.moveNext();
     }

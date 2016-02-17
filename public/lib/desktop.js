@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.25',
+      version: '0.4.28',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -79,9 +79,11 @@ function Attribute(args, arg2) {
   }(this.type);
   this.type = splitTypes[0];
   this.hint = args.hint || {};
+  if (args.hidden !== undefined)
+    this.hidden = args.hidden;
   this.validationRule = args.validationRule || {};
   var unusedProperties = [];
-  var standardProperties = ['name', 'type', 'label', 'hint', 'value', 'validationRule'];
+  var standardProperties = ['name', 'type', 'label', 'hint', 'hidden', 'value', 'validationRule'];
   switch (this.type) {
     case 'ID':
       unusedProperties = getInvalidProperties(args, standardProperties);
@@ -2824,7 +2826,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.INTERFACE = TGI.INTERFACE || {};
 TGI.INTERFACE.BOOTSTRAP = function () {
   return {
-    version: '0.1.5',
+    version: '0.1.10',
     BootstrapInterface: BootstrapInterface
   };
 };
@@ -3554,7 +3556,8 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
     var tHeadRow = addEle(tHead, 'tr');
     for (j = 1; j < list.model.attributes.length; j++) { // skip id (0))
       var hAttribute = list.model.attributes[j];
-      addEle(tHeadRow, 'th').innerHTML = hAttribute.label;
+      if (hAttribute.hidden == undefined)
+        addEle(tHeadRow, 'th').innerHTML = hAttribute.label;
     }
 
     /**
@@ -3576,25 +3579,28 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
 
       for (j = 1; j < list.model.attributes.length; j++) { // skip id (0))
         var dAttribute = list.model.attributes[j];
-        var dValue = list.get(dAttribute.name);
-
-        switch (dAttribute.type) {
-          case 'Date':
-            addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
-            break;
-          case 'Boolean':
-            if (dValue)
-              addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-check-square-o"></i>';
-            else
-              addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-square-o"></i>';
-            break;
-          default:
-            if (dValue && dValue.name) // todo instanceof Attribute.ModelID did not work so kludge here
-              addEle(tBodyRow, 'td').innerHTML = dValue.name;
-            else
-              addEle(tBodyRow, 'td').innerHTML = dValue;
+        if (dAttribute.hidden == undefined) {
+          var dValue = list.get(dAttribute.name);
+          switch (dAttribute.type) {
+            case 'Date':
+              //console.log('dValue=' + dValue);
+              // addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
+              // addEle(tBodyRow, 'td').innerHTML = dValue.toString(); // todo use moment.js
+              addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
+              break;
+            case 'Boolean':
+              if (dValue)
+                addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-check-square-o"></i>';
+              else
+                addEle(tBodyRow, 'td').innerHTML = '<i class="fa fa-square-o"></i>';
+              break;
+            default:
+              if (dValue && dValue.name) // todo instanceof Attribute.ModelID did not work so kludge here
+                addEle(tBodyRow, 'td').innerHTML = dValue.name;
+              else
+                addEle(tBodyRow, 'td').innerHTML = dValue;
+          }
         }
-
       }
       gotData = list.moveNext();
     }

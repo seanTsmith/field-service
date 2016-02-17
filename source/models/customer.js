@@ -9,14 +9,17 @@
     if (!args.attributes) {
       args.attributes = [];
     }
-    args.attributes.push(new tgi.Attribute({name: 'name', type: 'String(50)'}));
-    args.attributes.push(new tgi.Attribute({name: 'firstName', type: 'String(35)'}));
-    args.attributes.push(new tgi.Attribute({name: 'address1', type: 'String(50)'}));
-    args.attributes.push(new tgi.Attribute({name: 'city', type: 'String(35)'}));
-    args.attributes.push(new tgi.Attribute({name: 'state', type: 'String(2)'}));
-    args.attributes.push(new tgi.Attribute({name: 'zip', type: 'String(10)'}));
-    args.attributes.push(new tgi.Attribute({name: 'invoice', type: 'String(10)'}));
-    args.attributes.push(new tgi.Attribute({name: 'scan', type: 'Boolean'}));
+    args.attributes.push(new tgi.Attribute({name: 'Customer', type: 'String(50)'}));
+    args.attributes.push(new tgi.Attribute({name: 'Address1', label:'Address', type: 'String(50)'}));
+    args.attributes.push(new tgi.Attribute({name: 'Address2', type: 'String(50)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'City', type: 'String(35)'}));
+    args.attributes.push(new tgi.Attribute({name: 'State', type: 'String(2)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Zip', type: 'String(10)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Contact', type: 'String(50)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'HomePhone', type: 'String(10)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'WorkPhone', type: 'String(10)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'CellPhone', type: 'String(10)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Comments', type: 'String', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "Customer";
   };

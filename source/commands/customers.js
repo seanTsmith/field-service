@@ -9,7 +9,7 @@
     customerMaintenance.preRenderCallback(command, callback);
   };
   var customerCommand = new tgi.Command({
-    name: 'Invoices',
+    name: 'Customers',
     theme: 'success',
     type: 'Presentation',
     icon: 'fa-folder',
@@ -21,8 +21,8 @@
   /**
    * force
    */
-  //setTimeout(function () {
-  //  customerCommand.execute(ui);
-  //}, 0);
+  setTimeout(function () {
+    customerCommand.execute(ui);
+  }, 100);
 
 }());

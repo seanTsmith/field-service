@@ -6,7 +6,7 @@ var designToDo_ui = ui;
 
 site.ModelMaintenance = function (ModelConstructor) {
   this.model = new ModelConstructor();
-  this.viewState = 'LIST';
+  this.viewState = 'SEARCH';
 };
 
 site.ModelMaintenance.prototype.preRenderCallback = function (command, callback) {
@@ -14,10 +14,22 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
   self.name = self.model.modelType.toLowerCase();
   self.presentation = command.contents;
   self.contents = [];
+  self.searchObject = self.searchObject || {}; // preserve
+
+  /**
+   * See if we got here from internal refresh or from nav
+   */
+  if (self.internalRefresh) {
+    self.internalRefresh = false;
+  } else {
+    // Nav refresh
+    self.viewState = 'SEARCH';
+  }
+
   /**
    * Prepare the presentation for rendering based on view state
    */
-  console.log('self.viewState ' + self.viewState);
+  //console.log('self.viewState ' + self.viewState);
   switch (self.viewState) {
     case 'SEARCH':
       renderSearch();
@@ -41,6 +53,10 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
    * Callback after async ops done
    */
   function callbackDone() {
+    if (!self.internalRefresh) {
+      self.viewState = 'SEARCH';
+    }
+    self.internalRefresh = true;
     self.presentation.set('contents', self.contents);
     callback(command);
   }
@@ -53,7 +69,8 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     self.contents.push('Enter any search criteria to locate the ' + self.name + ' and click find or click new to add a ' + self.name + '.');
     self.contents.push('-');
     for (var i = 1; i < self.model.attributes.length; i++) { // copy all attribs except id
-      self.contents.push(self.model.attributes[i]);
+      if (self.model.attributes[i].hidden == undefined)
+        self.contents.push(self.model.attributes[i]);
     }
     self.contents.push('-');
     self.contents.push(new tgi.Command({
@@ -62,9 +79,13 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         icon: 'fa-search',
         type: 'Function',
         contents: function () {
+          self.searchObject = {};
           for (var i = 1; i < self.model.attributes.length; i++) { // copy all attribs except id
             var attribute = self.model.attributes[i];
-            console.log('<< ' + attribute.name + ': ' + attribute.value + ' >>');
+            if (attribute.value) {
+              var rex = new RegExp(attribute.value, 'i');
+              self.searchObject[attribute.name] = rex;
+            }
           }
           self.viewState = 'LIST';
           command.execute(designToDo_ui);
@@ -90,7 +111,6 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
    */
   function renderList() {
     command.presentationMode = 'View';
-    //self.contents.push('### list');
     try {
       var list = new tgi.List(self.model);
       list.pickKludge = function (id) {
@@ -106,9 +126,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
           }
         }
       };
-
-      //site.hostStore.getList(list, {name: /^X/i}, {}, function (list, error) {
-      site.hostStore.getList(list, {}, {name:1}, function (list, error) {
+      site.hostStore.getList(list, self.searchObject, {Customer:1}, function (list, error) {
         if (typeof error != 'undefined') {
           self.contents.push('#### ' + e);
           console.log('' + e);
