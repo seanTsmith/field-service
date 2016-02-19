@@ -5,6 +5,7 @@
 var designToDo_ui = ui;
 
 site.ModelMaintenance = function (ModelConstructor) {
+  this.ModelConstructor = ModelConstructor;
   this.model = new ModelConstructor();
   this.viewState = 'SEARCH';
 };
@@ -15,6 +16,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
   self.presentation = command.contents;
   self.contents = [];
   self.searchObject = self.searchObject || {}; // preserve
+  self.modelID = self.modelID || null; // For model edit
 
   /**
    * See if we got here from internal refresh or from nav
@@ -74,35 +76,34 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     }
     self.contents.push('-');
     self.contents.push(new tgi.Command({
-        name: 'Find ' + self.model.modelType,
-        theme: 'default',
-        icon: 'fa-search',
-        type: 'Function',
-        contents: function () {
-          self.searchObject = {};
-          for (var i = 1; i < self.model.attributes.length; i++) { // copy all attribs except id
-            var attribute = self.model.attributes[i];
-            if (attribute.value) {
-              var rex = new RegExp(attribute.value, 'i');
-              self.searchObject[attribute.name] = rex;
-            }
+      name: 'Find ' + self.model.modelType,
+      theme: 'default',
+      icon: 'fa-search',
+      type: 'Function',
+      contents: function () {
+        self.searchObject = {};
+        for (var i = 1; i < self.model.attributes.length; i++) { // copy all attribs except id
+          var attribute = self.model.attributes[i];
+          if (attribute.value) {
+            var rex = new RegExp(attribute.value, 'i');
+            self.searchObject[attribute.name] = rex;
           }
-          self.viewState = 'LIST';
-          command.execute(designToDo_ui);
         }
+        self.viewState = 'LIST';
+        command.execute(designToDo_ui);
       }
-    ));
+    }));
     self.contents.push(new tgi.Command({
-        name: 'New ' + self.model.modelType,
-        theme: 'default',
-        icon: 'fa-plus-square-o',
-        type: 'Function',
-        contents: function () {
-          self.viewState = 'EDIT';
-          command.execute(designToDo_ui);
-        }
+      name: 'New ' + self.model.modelType,
+      theme: 'default',
+      icon: 'fa-plus-square-o',
+      type: 'Function',
+      contents: function () {
+        self.modelID = null;
+        self.viewState = 'EDIT';
+        command.execute(designToDo_ui);
       }
-    ));
+    }));
     callbackDone();
   }
 
@@ -118,15 +119,13 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         for (var i = 0; i < items.length; i++) {
           var item = items[i];
           if (id == item[0]) {
-            if (item[8]) {
-              window.open("invoices/" + item[7] + ".pdf", "_blank");
-            } else {
-              app.err('Scanned invoice unavailable.');
-            }
+            self.modelID = id;
+            self.viewState = 'EDIT';
+            command.execute(designToDo_ui);
           }
         }
       };
-      site.hostStore.getList(list, self.searchObject, {Customer:1}, function (list, error) {
+      site.hostStore.getList(list, self.searchObject, {Customer: 1}, function (list, error) {
         if (typeof error != 'undefined') {
           self.contents.push('#### ' + e);
           console.log('' + e);
@@ -157,7 +156,63 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
    */
   function renderEdit() {
     command.presentationMode = 'Edit';
-    self.contents.push('### edit');
-    callbackDone();
+
+    /**
+     * Create a new model in self.editModel and load if editing existing
+     */
+    self.editModel = new self.ModelConstructor();
+    if (self.modelID) {
+      self.editModel.set('id', self.modelID);
+      try {
+        site.hostStore.getModel(self.editModel, function (model, error) {
+          if (error) {
+            self.contents.push('Error getting  ' + self.name + ':');
+            self.contents.push('' + error);
+            callbackDone();
+          } else {
+            renderModel();
+          }
+        });
+      } catch (e) {
+        console.log('error caught ' + e);
+      }
+    } else {
+      renderModel();
+    }
+
+    /**
+     * Model is ready to be rendered
+     */
+    function renderModel() {
+      if (self.modelID)
+        self.contents.push('Make any changes to ' + self.name + ' and press SAVE to update database.');
+      else
+        self.contents.push('Enter info for ' + self.name + ' and press SAVE to update database.');
+      self.contents.push('-');
+      for (var i = 1; i < self.editModel.attributes.length; i++) { // copy all attribs except id
+        //if (self.model.attributes[i].hidden == undefined)
+        self.contents.push(self.editModel.attributes[i]);
+      }
+      self.contents.push('-');
+      self.contents.push(new tgi.Command({
+        name: 'Save ' + self.model.modelType,
+        theme: 'success',
+        icon: 'fa-check-circle',
+        type: 'Function',
+        contents: saveModel
+      }));
+      callbackDone();
+    }
+
+    /**
+     * Save model
+     */
+    function saveModel() {
+      self.modelID = null;
+      self.viewState = 'EDIT';
+      command.execute(designToDo_ui);
+    }
+
+
   }
 };
