@@ -11,62 +11,30 @@
   var importCustomersCommand = new tgi.Command({
     name: 'import customers', type: 'Procedure', contents: new tgi.Procedure({
       tasks: [
-
         /**
          * Load JSON
          */
           function () {
           var task = this;
-          $.getJSON('ServiceExport.json', function (data) {
+          $.getJSON('ServiceExportTiny.json', function (data) {
             records = data;
-            console.log('got bytes ' + data.length);
             task.complete();
           }).fail(function (a, b, c) {
             app.err('getJSON error ' + c);
             task.abort();
           });
         },
-
-
-        /*
-         *
-         Customer.CustomerID,
-         Customer.Company,
-         Customer.Customer,
-         Customer.Address1,
-         Customer.Address2,
-         Customer.City,
-         Customer.State,
-         Customer.Zip,
-         Customer.HomePhone,
-         Customer.WorkPhone,
-         Customer.CellPhone,
-         Customer.Comments,
-         Service.ServiceDate,
-         Service.InvoiceNumber,
-         Service.AmountCharged,
-         Service.TankPumped,
-         Service.Comments
-
-         FROM Customer RIGHT JOIN Service ON Customer.CustomerID = Service.CustomerID
-
-         ORDER BY Customer.CustomerID;
-
-         *
-         * */
-
         /**
          * Create customer
          */
           function () {
-          console.log('Create customer');
           var task = this;
-          try {
-            function doit() {
-              if (recno < 100) { // records.length) {
+          function doCustomer() {
+            try {
+              if (recno < records.length) {
                 var record = records[recno];
                 recno++;
-
+                console.log('on rec#' + recno);
                 // var lastCustomerID = -1;
                 var thisCustomerID = record.CustomerID;
                 if (thisCustomerID != lastCustomerID) {
@@ -93,22 +61,37 @@
                       app.err('error putting customer ' + customer.get('name') + ': ' + error);
                       task.abort();
                     } else {
-                      doit();
+                      doInvoice(record);
                     }
                   });
                 } else {
-                  doit();
+                  doInvoice(record);
                 }
               } else {
                 task.complete();
               }
+            } catch (e) {
+              app.err('error creating customer' + e);
             }
-
-            console.log('1st do it');
-            doit();
-          } catch (e) {
-            app.err('error creating customer' + e);
+            function doInvoice(record) {
+              var invoice = new site.Invoice();
+              invoice.set('CustomerID', customer.get('id'));
+              invoice.set('InvoiceNumber', record.InvoiceNumber || '');
+              if (record.ServiceDate)
+                invoice.set('ServiceDate', new Date(record.ServiceDate));
+              invoice.set('TankPumped', record.TankPumped == "TRUE");
+              invoice.set('Comments', record.Service_Comments || '');
+              site.hostStore.putModel(invoice, function (model, error) {
+                if (typeof error != 'undefined') {
+                  app.err('error putting invoice ' + invoice.get('InvoiceNumber') + ': ' + error);
+                  task.abort();
+                } else {
+                  doCustomer();
+                }
+              });
+            }
           }
+          doCustomer();
         }
       ]
     })

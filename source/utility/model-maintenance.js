@@ -120,7 +120,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
           var item = items[i];
           if (id == item[0]) {
             self.modelID = id;
-            self.viewState = 'EDIT';
+            self.viewState = 'VIEW';
             command.execute(designToDo_ui);
           }
         }
@@ -147,8 +147,52 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
    */
   function renderView() {
     command.presentationMode = 'View';
-    self.contents.push('### view');
-    callbackDone();
+
+    /**
+     * Create a new model in self.viewModel and load if editing existing
+     */
+    self.viewModel = new self.ModelConstructor();
+    if (self.modelID) {
+      self.viewModel.set('id', self.modelID);
+      try {
+        site.hostStore.getModel(self.viewModel, function (model, error) {
+          if (error) {
+            self.contents.push('Error getting  ' + self.name + ':');
+            self.contents.push('' + error);
+            callbackDone();
+          } else {
+            renderModel();
+          }
+        });
+      } catch (e) {
+        console.log('error caught ' + e);
+      }
+    } else {
+      renderModel();
+    }
+
+    /**
+     * Model is ready to be rendered
+     */
+    function renderModel() {
+      for (var i = 1; i < self.viewModel.attributes.length; i++) { // copy all attribs except id
+        console.log('self.model.attributes[i] ' + self.viewModel.attributes[i]);
+        if (self.viewModel.attributes[i].value)
+          self.contents.push(self.viewModel.attributes[i]);
+      }
+      self.contents.push('-');
+      self.contents.push(new tgi.Command({
+        name: 'Edit ' + self.model.modelType,
+        theme: 'default',
+        icon: 'fa-pencil-square-o',
+        type: 'Function',
+        contents: function () {
+          self.viewState = 'EDIT';
+          command.execute(designToDo_ui);
+        }
+      }));
+      callbackDone();
+    }
   }
 
   /**
@@ -194,6 +238,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         self.contents.push(self.editModel.attributes[i]);
       }
       self.contents.push('-');
+
       self.contents.push(new tgi.Command({
         name: 'Save ' + self.model.modelType,
         theme: 'success',
@@ -201,6 +246,23 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         type: 'Function',
         contents: saveModel
       }));
+
+      self.contents.push(new tgi.Command({
+        name: 'Cancel',
+        theme: 'default',
+        icon: 'fa-ban',
+        type: 'Function',
+        contents: function () {
+          if (self.modelID) {
+            self.viewState = 'VIEW';
+            command.execute(designToDo_ui);
+          } else {
+            self.viewState = 'SEARCH';
+            command.execute(designToDo_ui);
+          }
+        }
+      }));
+
       callbackDone();
     }
 
@@ -208,11 +270,20 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
      * Save model
      */
     function saveModel() {
-      self.modelID = null;
-      self.viewState = 'EDIT';
-      command.execute(designToDo_ui);
+      try {
+        site.hostStore.putModel(self.editModel, function (model, error) {
+          if (error) {
+            self.contents.push('Error putting  ' + self.name + ':');
+            self.contents.push('' + error);
+          } else {
+            self.viewState = 'VIEW';
+            command.execute(designToDo_ui);
+          }
+
+        });
+      } catch (e) {
+        console.log('error caught ' + e);
+      }
     }
-
-
   }
 };
