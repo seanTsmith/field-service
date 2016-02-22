@@ -19,6 +19,3 @@
   };
   site.Invoice.prototype = Object.create(tgi.Model.prototype);
 }());
-
-console.log('testing model ...');
-new site.Invoice();

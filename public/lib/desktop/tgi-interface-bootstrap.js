@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.28',
+      version: '0.4.31',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -2826,7 +2826,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.INTERFACE = TGI.INTERFACE || {};
 TGI.INTERFACE.BOOTSTRAP = function () {
   return {
-    version: '0.1.10',
+    version: '0.1.11',
     BootstrapInterface: BootstrapInterface
   };
 };
@@ -4121,6 +4121,7 @@ BootstrapInterface.prototype.ask = function (prompt, attribute, callback) {
   } else {
     this.doc.askDialogTitle.innerHTML = this.application.get('brand');
     this.doc.askDialogPrompt.innerHTML = prompt + '<br><br>';
+    this.doc.askDialogInput.value = attribute.value;
     $(this.doc.askDialog).modal();
     this.askcallback = callback;
   }

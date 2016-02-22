@@ -14,3 +14,4 @@ TO DO
 LATER
 ===
 - model loosing attributes when put getmodel or putmodel done (bug in lib)
+- invoice.attributes[2] refs are shit

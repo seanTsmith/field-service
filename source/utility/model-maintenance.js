@@ -8,6 +8,12 @@ site.ModelMaintenance = function (ModelConstructor) {
   this.ModelConstructor = ModelConstructor;
   this.model = new ModelConstructor();
   this.viewState = 'SEARCH';
+  this.onRenderAttributes(function (callback) {
+    callback();
+  });
+  this.onRenderCommands(function (callback) {
+    callback();
+  });
 };
 
 site.ModelMaintenance.prototype.preRenderCallback = function (command, callback) {
@@ -96,7 +102,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     self.contents.push(new tgi.Command({
       name: 'New ' + self.model.modelType,
       theme: 'default',
-      icon: 'fa-plus-square-o',
+      icon: 'fa-plus-circle',
       type: 'Function',
       contents: function () {
         self.modelID = null;
@@ -176,22 +182,35 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
      */
     function renderModel() {
       for (var i = 1; i < self.viewModel.attributes.length; i++) { // copy all attribs except id
-        console.log('self.model.attributes[i] ' + self.viewModel.attributes[i]);
+        //console.log('self.model.attributes[i] ' + self.viewModel.attributes[i]);
         if (self.viewModel.attributes[i].value)
           self.contents.push(self.viewModel.attributes[i]);
       }
-      self.contents.push('-');
-      self.contents.push(new tgi.Command({
-        name: 'Edit ' + self.model.modelType,
-        theme: 'default',
-        icon: 'fa-pencil-square-o',
-        type: 'Function',
-        contents: function () {
-          self.viewState = 'EDIT';
-          command.execute(designToDo_ui);
+      self._renderAttributes(self.viewModel, function (afterAttributes) {
+        if (afterAttributes) {
+          for (var i = 0; i < afterAttributes.length; i++) {
+            self.contents.push(afterAttributes[i]);
+          }
         }
-      }));
-      callbackDone();
+        self.contents.push('-');
+        self.contents.push(new tgi.Command({
+          name: '' + self.model.modelType,
+          icon: 'fa-pencil-square-o',
+          type: 'Function',
+          contents: function () {
+            self.viewState = 'EDIT';
+            command.execute(designToDo_ui);
+          }
+        }));
+        self._renderCommands(self.viewModel, function (afterCommands) {
+          if (afterCommands) {
+            for (var i = 0; i < afterCommands.length; i++) {
+              self.contents.push(afterCommands[i]);
+            }
+          }
+          callbackDone();
+        });
+      });
     }
   }
 
@@ -286,4 +305,10 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
       }
     }
   }
+};
+site.ModelMaintenance.prototype.onRenderAttributes = function (callback) {
+  this._renderAttributes = callback;
+};
+site.ModelMaintenance.prototype.onRenderCommands = function (callback) {
+  this._renderCommands = callback;
 };

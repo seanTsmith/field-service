@@ -1914,8 +1914,6 @@ spec.testModel = function (SurrogateModel, root) {
         this.shouldBeTrue(model.getObjectStateErrors(true).length == 6);
       });
     });
-    spec.heading('value', function () {
-    });
   });
   spec.heading('METHODS', function () {
     spec.heading('toString()', function () {
