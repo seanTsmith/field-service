@@ -22,7 +22,7 @@
 
   var invoiceCommand = new tgi.Command({
     name: 'Invoices',
-    theme: 'success',
+    theme: 'warning',
     type: 'Presentation',
     icon: 'fa-file-text',
     contents: invoicePresentation
@@ -32,8 +32,8 @@
   /**
    * force
    */
-  setTimeout(function () {
-    invoiceCommand.execute(ui);
-  }, 100);
+  //setTimeout(function () {
+  //  invoiceCommand.execute(ui);
+  //}, 100);
 
 }());

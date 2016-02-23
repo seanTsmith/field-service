@@ -16,10 +16,10 @@
     args.attributes.push(new tgi.Attribute({name: 'State', type: 'String(2)', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'Zip', type: 'String(10)', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'Contact', type: 'String(50)', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'HomePhone', type: 'String(10)', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'WorkPhone', type: 'String(10)', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'CellPhone', type: 'String(10)', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'Comments', type: 'String', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'HomePhone', type: 'String(25)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'WorkPhone', type: 'String(25)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'CellPhone', type: 'String(25)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Comments', type: 'String(255)', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "Customer";
   };

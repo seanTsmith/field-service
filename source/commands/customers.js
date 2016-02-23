@@ -1,11 +1,14 @@
 /**---------------------------------------------------------------------------------------------------------------------
  * field-service/source/commands/customers.js
  */
-
+var designToDo_ui = ui;
 (function () {
   var customerPresentation = new tgi.Presentation();
   var customerMaintenance = new site.ModelMaintenance(site.Customer);
   var invoiceButtons = [];
+  var customerCommand;
+  var invoice;
+  var isNewInvoice;
 
   customerPresentation.preRenderCallback = function (command, callback) {
     customerMaintenance.preRenderCallback(command, callback);
@@ -15,79 +18,90 @@
    * Handle invoice edits
    */
   function editInvoice() {
-    /**
-     * If new set CustomerID else get the model (async op)
-     */
-    var isNew = (tgi.left(this.name, 3) == 'New');
-    var invoice = new site.Invoice();
-    if (isNew) {
-      invoice.set('CustomerID', this.bucket);
-      getInvoiceNumber();
-    } else {
-      invoice.set('id', this.bucket);
-      site.hostStore.getModel(invoice, function (model, error) {
-        if (error) {
-          app.err('getModel error: ' + error);
-        } else {
-          //invoice=model;
-          getInvoiceNumber();
-        }
-      });
+    try {
+      /**
+       * If new set CustomerID else get the model (async op)
+       */
+      isNewInvoice = (tgi.left(this.name, 3) == 'New');
+      invoice = new site.Invoice();
+      if (isNewInvoice) {
+        invoice.set('CustomerID', this.bucket);
+        triggerRenderInvoice();
+      } else {
+        invoice.set('id', this.bucket);
+        site.hostStore.getModel(invoice, function (model, error) {
+          invoice = model;
+          if (error) {
+            app.err('getModel error: ' + error);
+          } else {
+            triggerRenderInvoice();
+          }
+        });
+      }
+      function triggerRenderInvoice() {
+        customerMaintenance.viewState = 'CUSTOM';
+        customerCommand.execute(designToDo_ui);
+      }
+    } catch (e) {
+      console.log('error ' + e);
     }
-
-    /**
-     * Prompt for InvoiceNumber
-     */
-    function getInvoiceNumber() {
-      app.ask('Enter Invoice Number', invoice.attributes[2], function (reply) {
-        if (!reply)
-          queryCancel();
-        else {
-          invoice.attributes[2].value = reply;
-          getServiceDate();
-        }
-      });
-    }
-
-    /**
-     * Prompt for ServiceDate
-     */
-    function getServiceDate() {
-      app.ask('Enter Service Date', invoice.attributes[3], function (reply) {
-        if (!reply)
-          queryCancel();
-        else {
-          invoice.attributes[3].value = reply;
-          getServiceDate();
-        }
-      });
-    }
-
-    /**
-     * Prompt for TankPumped
-     */
-    function getTankPumped() {
-    }
-
-    /**
-     * Prompt for Comments
-     */
-    function getComments() {
-    }
-
-    /**
-     * QueryCancel
-     */
-    function queryCancel() {
-    }
-
-    /**
-     * QueryDone
-     */
-    function queryDone() {
-    }
-
   }
+
+  function saveInvoice() {
+    try {
+      site.hostStore.putModel(invoice, function (model, error) {
+        if (error) {
+          self.contents.push('Error putting  ' + invoice + ':');
+          self.contents.push('' + error);
+        } else {
+          customerMaintenance.viewState = 'VIEW';
+          customerCommand.execute(designToDo_ui);
+        }
+
+      });
+    } catch (e) {
+      console.log('error caught ' + e);
+    }
+  }
+
+  /**
+   * Render custom view (invoice edit)
+   */
+  customerMaintenance.onCustomViewState(function (callback) {
+    invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
+    customerCommand.presentationMode = 'Edit';
+    customerMaintenance.contents.push((isNewInvoice ? '#### New Invoice' : '#### Modify Invoice'));
+    customerMaintenance.contents.push('-');
+    for (var i = 2; i < invoice.attributes.length; i++) {
+      customerMaintenance.contents.push(invoice.attributes[i]);
+    }
+    customerMaintenance.contents.push('-');
+
+
+    customerMaintenance.contents.push(new tgi.Command({
+      name: 'Save Invoice',
+      theme: 'success',
+      icon: 'fa-check-circle',
+      type: 'Function',
+      contents: saveInvoice
+    }));
+
+    customerMaintenance.contents.push(new tgi.Command({
+      name: 'Cancel',
+      theme: 'default',
+      icon: 'fa-ban',
+      type: 'Function',
+      contents: function () {
+        customerMaintenance.viewState = 'VIEW';
+        customerCommand.execute(designToDo_ui);
+      }
+    }));
+
+    // equiv of callbackDone()
+    customerMaintenance.internalRefresh = true;
+    customerMaintenance.presentation.set('contents', customerMaintenance.contents);
+    customerMaintenance.callback();
+  });
 
   /**
    * After model attributes rendered add each invoice
@@ -106,7 +120,7 @@
             attribute.value = ''; //
             if (invoices.get('ServiceDate'))
               attribute.value += tgi.left('' + invoices.get('ServiceDate'), 16) + ':';
-            if (invoices.get('ServiceDate'))
+            if (invoices.get('TankPumped'))
               attribute.value += ' Tank Pumped';
             if (invoices.get('Comments'))
               attribute.value += ' ' + invoices.get('Comments');
@@ -124,7 +138,6 @@
         }
       });
   });
-
   customerMaintenance.onRenderCommands(function (customer, callback) {
     invoiceButtons.push(new tgi.Command({
       name: 'New Invoice ',
@@ -135,15 +148,13 @@
     }));
     callback(invoiceButtons);
   });
-
-  var customerCommand = new tgi.Command({
+  customerCommand = new tgi.Command({
     name: 'Customers',
     theme: 'success',
     type: 'Presentation',
     icon: 'fa-user',
     contents: customerPresentation
   });
-  //site.modelsMenu.push(customerCommand);
   site.navContents.push(customerCommand);
 
   /**

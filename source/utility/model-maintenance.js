@@ -5,17 +5,21 @@
 var designToDo_ui = ui;
 
 site.ModelMaintenance = function (ModelConstructor) {
+  var self = this;
   this.ModelConstructor = ModelConstructor;
   this.model = new ModelConstructor();
   this.viewState = 'SEARCH';
-  this.onRenderAttributes(function (callback) {
+  this.onRenderAttributes(function (model, callback) {
     callback();
   });
-  this.onRenderCommands(function (callback) {
+  this.onRenderCommands(function (model, callback) {
+    callback();
+  });
+  this.onCustomViewState(function (callback) {
+    self.contents.push('UNKNOWN VIEW STATE ' + self.viewState);
     callback();
   });
 };
-
 site.ModelMaintenance.prototype.preRenderCallback = function (command, callback) {
   var self = this;
   self.name = self.model.modelType.toLowerCase();
@@ -23,6 +27,8 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
   self.contents = [];
   self.searchObject = self.searchObject || {}; // preserve
   self.modelID = self.modelID || null; // For model edit
+  self.command = command;
+  self.callback = callback;
 
   /**
    * See if we got here from internal refresh or from nav
@@ -50,6 +56,9 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
       break;
     case 'EDIT':
       renderEdit();
+      break;
+    case 'CUSTOM':
+      self._customViewState(callbackDone);
       break;
     default:
       self.contents.push('UNKNOWN VIEW STATE ' + self.viewState);
@@ -311,4 +320,7 @@ site.ModelMaintenance.prototype.onRenderAttributes = function (callback) {
 };
 site.ModelMaintenance.prototype.onRenderCommands = function (callback) {
   this._renderCommands = callback;
+};
+site.ModelMaintenance.prototype.onCustomViewState = function (callback) {
+  this._customViewState = callback;
 };
