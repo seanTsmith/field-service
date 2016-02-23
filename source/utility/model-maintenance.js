@@ -183,7 +183,9 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         console.log('error caught ' + e);
       }
     } else {
-      renderModel();
+      app.warn('unable to view');
+      self.viewState = 'VIEW';
+      command.execute(designToDo_ui);
     }
 
     /**
@@ -304,6 +306,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
             self.contents.push('Error putting  ' + self.name + ':');
             self.contents.push('' + error);
           } else {
+            self.modelID = model.get('id');;
             self.viewState = 'VIEW';
             command.execute(designToDo_ui);
           }
