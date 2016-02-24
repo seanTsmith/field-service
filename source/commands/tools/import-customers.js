@@ -4,6 +4,13 @@
 
 (function () {
 
+  function fixPhone(phone) {
+    phone = phone || '';
+    if (phone.length == 10)
+      return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    return phone;
+  }
+
   var customer;
   var records;
   var recno = 0;
@@ -16,7 +23,7 @@
          */
           function () {
           var task = this;
-          $.getJSON('ServiceExportTiny.json', function (data) {
+          $.getJSON('ServiceExport.json', function (data) {
             records = data;
             task.complete();
           }).fail(function (a, b, c) {
@@ -52,9 +59,9 @@
                   customer.set('City', record.City || '');
                   customer.set('State', record.State || '');
                   customer.set('Zip', record.Zip || '');
-                  customer.set('HomePhone', record.HomePhone || '');
-                  customer.set('WorkPhone', record.WorkPhone || '');
-                  customer.set('CellPhone', record.CellPhone || '');
+                  customer.set('HomePhone', fixPhone(record.HomePhone));
+                  customer.set('WorkPhone', fixPhone(record.WorkPhone));
+                  customer.set('CellPhone', fixPhone(record.CellPhone));
                   customer.set('Comments', record.Comments || '');
                   site.hostStore.putModel(customer, function (model, error) {
                     if (typeof error != 'undefined') {
@@ -86,7 +93,9 @@
                   app.err('error putting invoice ' + invoice.get('InvoiceNumber') + ': ' + error);
                   task.abort();
                 } else {
-                  doCustomer();
+                  setTimeout(function () {
+                    doCustomer();
+                  }, 0);
                 }
               });
             }

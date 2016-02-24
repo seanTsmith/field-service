@@ -69,11 +69,11 @@
           var task = this;
           try {
             user = new tgi.User();
-            user.set('name', 'admin');
+            user.set('name', 'super');
             user.set('active', true);
-            user.set('password', 'tgi');
-            user.set('firstName', 'System');
-            user.set('lastName', 'Administrator');
+            user.set('password', 'septic');
+            user.set('firstName', 'Super');
+            user.set('lastName', 'Septic');
             site.hostStore.putModel(user, function (model, error) {
               if (typeof error != 'undefined') {
                 app.err('error creating admin' + error);

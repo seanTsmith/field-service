@@ -4,11 +4,18 @@ sudo npm install xlsjs -g
 export as 2003 from access then
 xls Customers.xls -j > Customers.json
 
+MEETING
+===
+- Invoice call it work order
+- add fields to Invoice
+    - tech
+    - utilityLocate (Y/N)
+    - comment - special instructions
+
 TO DO
 ===
 - basic login
-- Convert phones as xxx-xxx-xxxx
-- do full conversion
+- backup database ?
 
 TO FIX
 ===
@@ -18,6 +25,8 @@ TO FIX
 
 LATER
 ===
+- password loaded from config
+- server needs to do something different if mongodb not loaded
 - if invoice NULL say new ticket
 - deletes
 - customer view with null crashes

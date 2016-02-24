@@ -3,6 +3,9 @@
  */
 var designToDo_ui = ui;
 (function () {
+  if (!site.loggedIn) {
+    return;
+  }
   var customerPresentation = new tgi.Presentation();
   var customerMaintenance = new site.ModelMaintenance(site.Customer);
   var invoiceButtons = [];
@@ -46,7 +49,6 @@ var designToDo_ui = ui;
       console.log('error ' + e);
     }
   }
-
   function saveInvoice() {
     try {
       site.hostStore.putModel(invoice, function (model, error) {
@@ -160,8 +162,8 @@ var designToDo_ui = ui;
   /**
    * force
    */
-  setTimeout(function () {
-    customerCommand.execute(ui);
-  }, 100);
+  //setTimeout(function () {
+  //  customerCommand.execute(ui);
+  //}, 100);
 
 }());

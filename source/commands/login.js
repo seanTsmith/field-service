@@ -3,8 +3,10 @@
  */
 
 (function () {
+  if (site.loggedIn) {
+    return;
+  }
   var loginPresentation = new tgi.Presentation();
-  var storePicks = ['MemoryStore', 'LocalStore', 'HostStore'];
   var login, password, loginButton;
   loginPresentation.set('contents', [
     '>',
@@ -15,7 +17,7 @@
       label: 'Login',
       type: 'String(20)',
       validationRule: {required: true},
-      value: 'admin'
+      value: ''
     }),
     password = new tgi.Attribute({
       name: 'password',
@@ -23,11 +25,10 @@
       type: 'String(20)',
       validationRule: {required: true},
       hint: {password: true},
-      value: 'tgi'
+      value: ''
     }),
-    //new tgi.Attribute({name: 'store', label: 'Store', type: 'String', quickPick: storePicks, value: '(memory store)'}),
     '>',
-    loginButton = new tgi.Command({name: 'Login', type: 'Function', theme: 'info', icon: 'fa-sign-in', contents: loginSession})
+    new tgi.Command({name: 'Login', type: 'Function', theme: 'info', icon: 'fa-sign-in', contents: loginSession})
   ]);
 
   var loginCommand = new tgi.Command({
@@ -45,16 +46,14 @@
   /**
    * After start, force login
    */
-  //setTimeout(function () {
-  //  loginCommand.execute(ui);
-  //  loginButton.execute(ui);
-  //}, 250);
+  setTimeout(function () {
+    loginCommand.execute(ui);
+  }, 250);
 
   /**
    * Start session when info submitted
    */
   function loginSession() {
-    //tgi.Transport.showLog=true;
     try {
       loginPresentation.validate(function () {
         if (loginPresentation.validationMessage) {
@@ -62,12 +61,15 @@
           return;
         }
         site.session.startSession(site.hostStore, login.value, password.value, '*', function (err, session) {
-          if (err)
+          if (err) {
             app.err('' + err);
-          else
-            app.info('session ' + session.get('id'));
+          } else {
+            window.location = window.location.href + '?session=' + session.get('id');
+            //app.info('session ' + session.get('id'));
+            // window.location.href
+            // window.location = "http://www.yoururl.com";
+          }
         });
-
       });
     } catch (e) {
       console.log('err ' + e);

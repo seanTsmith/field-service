@@ -10,6 +10,10 @@
 var app = new tgi.Application({interface: ui});
 var site = {};
 
+
+
+
+site.loggedIn = (window.location.href.indexOf('session') > -1);
 site.nav = new tgi.Presentation();
 site.navContents = [];
 site.toolsMenu = [];
