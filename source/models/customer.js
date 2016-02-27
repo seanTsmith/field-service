@@ -3,6 +3,7 @@
  */
 
 (function () {
+  site.customerSource = ['Water', 'Coke', 'Coffee'];
   site.Customer = function (args) {
     if (false === (this instanceof site.Customer)) throw new Error('new operator required');
     args = args || {};
@@ -19,6 +20,8 @@
     args.attributes.push(new tgi.Attribute({name: 'HomePhone', type: 'String(25)', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'WorkPhone', type: 'String(25)', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'CellPhone', type: 'String(25)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Email', type: 'String(50)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Source',type: 'String(25)',quickPick: site.customerSource,validationRule: {isOneOf: site.customerSource}, hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'Comments', type: 'String(255)', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "Customer";

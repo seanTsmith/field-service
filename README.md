@@ -10,14 +10,14 @@ MEETING
 - Customer Source
 - Invoice call it work order
 - add fields to Invoice
-    - Tech
     - Emergency (Y/N)
     - UtilityLocate (Y/N)
-    - Special instructions
+    - Customer Notes
     - Tech Notes
 
 TO DO
 ===
+- Default
 - Multi-line notes
 - new invoice date default to or blank - no 1969
 - removed drop and drag shit
@@ -41,3 +41,5 @@ LATER
 - model loosing attributes when put getmodel or putmodel done (bug in lib)
 - invoice.attributes[2] refs are shit
 - invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
+- add fields to Invoice
+    - Tech

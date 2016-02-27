@@ -4,6 +4,36 @@
 
 var designToDo_ui = ui;
 
+TGI.STORE.REMOTE().RemoteStore.prototype.getModel = function (model, callback) {
+  if (!(model instanceof tgi.Model)) throw new Error('argument must be a Model');
+  if (model.getObjectStateErrors().length) throw new Error('model has validation errors');
+  if (!model.attributes[0].value) throw new Error('ID not set');
+  if (typeof callback != "function") throw new Error('callback required');
+  this.transport.send(new tgi.Message('GetModel', model), function (msg) {
+    console.log('GetModel callback biches');
+    if (false && msg == 'Ack') { // todo wtf is this
+      callback(model);
+    } else if (msg.type == 'GetModelAck') {
+      var c = msg.contents;
+      model.attributes = [];
+      for (var a in c.attributes) {
+        if (c.attributes.hasOwnProperty(a)) {
+          var attrib = new tgi.Attribute(c.attributes[a].name, c.attributes[a].type);
+          attrib.value = c.attributes[a].value;
+          model.attributes.push(attrib);
+        }
+      }
+      if (typeof c == 'string')
+        callback(model, c);
+      else
+        callback(model);
+    } else {
+      callback(model, Error(msg));
+    }
+  });
+};
+
+
 site.ModelMaintenance = function (ModelConstructor) {
   var self = this;
   this.ModelConstructor = ModelConstructor;
@@ -205,7 +235,16 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         }
         self.contents.push('-');
         self.contents.push(new tgi.Command({
-          name: '' + self.model.modelType,
+          name: 'Back',
+          icon: 'fa-undo',
+          type: 'Function',
+          contents: function () {
+            self.viewState = 'LIST';
+            command.execute(designToDo_ui);
+          }
+        }));
+        self.contents.push(new tgi.Command({
+          name: 'Edit ' + self.model.modelType,
           icon: 'fa-pencil-square-o',
           type: 'Function',
           contents: function () {
@@ -238,7 +277,9 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     if (self.modelID) {
       self.editModel.set('id', self.modelID);
       try {
+        console.log('GET IT');
         site.hostStore.getModel(self.editModel, function (model, error) {
+          console.log('GOT IT');
           if (error) {
             self.contents.push('Error getting  ' + self.name + ':');
             self.contents.push('' + error);
