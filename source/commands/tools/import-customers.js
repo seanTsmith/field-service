@@ -19,6 +19,18 @@
     name: 'import customers', type: 'Procedure', contents: new tgi.Procedure({
       tasks: [
         /**
+         * Ask where to start import
+         */
+          function () {
+          var task = this;
+          var newRecno = new tgi.Attribute('recno');
+          ui.ask('Starting Record?',newRecno, function (answer) {
+            recno = Number(answer);
+            task.complete();
+          })
+
+        },
+        /**
          * Load JSON
          */
           function () {
@@ -36,6 +48,7 @@
          */
           function () {
           var task = this;
+
           function doCustomer() {
             try {
               if (recno < records.length) {
@@ -100,6 +113,7 @@
               });
             }
           }
+
           doCustomer();
         }
       ]
