@@ -1101,6 +1101,13 @@ Model.prototype.getObjectStateErrors = function () {
   }
   return this.validationErrors;
 };
+Model.prototype.attribute = function (attributeName) {
+  for (var i = 0; i < this.attributes.length; i++) {
+    if (this.attributes[i].name.toUpperCase() == attributeName.toUpperCase())
+      return this.attributes[i];
+  }
+  throw new Error('attribute not found in model: ' + attributeName);
+};
 Model.prototype.get = function (attribute) {
   for (var i = 0; i < this.attributes.length; i++) {
     if (this.attributes[i].name.toUpperCase() == attribute.toUpperCase())
@@ -3126,7 +3133,7 @@ BootstrapInterface.prototype.activatePanel = function (command) {
     /**
      * Main framing and title text
      */
-    panel.panelDiv = addTopEle(this.doc.panelRow, 'div', 'panel panel-' + theme, {draggable: 'true'});
+    panel.panelDiv = addTopEle(this.doc.panelRow, 'div', 'panel panel-' + theme);
     panel.panelHeading = addEle(panel.panelDiv, 'div', 'panel-heading');
     panel.panelTitle = addEle(panel.panelHeading, 'div', 'panel-title');
     panel.panelTitleText = addEle(panel.panelTitle, 'a', 'panel-title-text', {href: '#'});
@@ -4430,7 +4437,7 @@ LocalStore.prototype._putStore = function () {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.REMOTE = function () {
   return {
-    version: '0.0.9',
+    version: '0.0.14',
     RemoteStore: RemoteStore
   };
 };
@@ -4504,17 +4511,24 @@ RemoteStore.prototype.getModel = function (model, callback) {
   if (!model.attributes[0].value) throw new Error('ID not set');
   if (typeof callback != "function") throw new Error('callback required');
   this.transport.send(new Message('GetModel', model), function (msg) {
-    //console.log('GetModel callback');
-    if (false && msg == 'Ack') { // todo wtf is this
-      callback(model);
-    } else if (msg.type == 'GetModelAck') {
-      var c = msg.contents;
-      model.attributes = [];
-      for (var a in c.attributes) {
-        if (c.attributes.hasOwnProperty(a)) {
-          var attrib = new Attribute(c.attributes[a].name, c.attributes[a].type);
-          attrib.value = c.attributes[a].value;
-          model.attributes.push(attrib);
+    if (msg.type == 'GetModelAck') {
+      var newAttributes = msg.contents.attributes;
+      for (var i = 0; i < model.attributes.length; i++) {
+        var attribute = model.attributes[i];
+        var name = model.attributes[i].name;
+        var gotOne = false;
+        for (var j = 0; j < newAttributes.length; j++) {
+          var newAttribute = newAttributes[j];
+          var name2 = newAttribute.name;
+          if (name2 == name) {
+            if (newAttribute.value === undefined)
+              attribute.value = null;
+            else
+              attribute.value = newAttribute.value;
+            gotOne = true;
+          }
+          if (!gotOne)
+            attribute.value = null;
         }
       }
       if (typeof c == 'string')
@@ -4554,12 +4568,15 @@ RemoteStore.prototype.putModel = function (model, callback) {
               modelID.name = contents.attributes[a].value.name;
 
 
-
             //  var v = new Attribute.ModelID(new Model());
             //  v.value = c.attributes[a].value;
             //  attrib = new Attribute({name:c.attributes[a].name, type:'Model',value:v});
 
-            attrib = new Attribute({name: contents.attributes[a].name, type: contents.attributes[a].type, value: modelID});
+            attrib = new Attribute({
+              name: contents.attributes[a].name,
+              type: contents.attributes[a].type,
+              value: modelID
+            });
 
             //attrib = new Attribute(c.attributes[a].name, c.attributes[a].type);
             //attrib.value = c.attributes[a].value;
@@ -4626,12 +4643,12 @@ RemoteStore.prototype.getList = function (list, filter, arg3, arg4) {
   if (typeof callback != "function") throw new Error('callback required');
   for (var i in filter)
     if (filter.hasOwnProperty(i)) {
-      console.log('RemoteStore: before ' + i + ':' + filter[i] + '');
+      //console.log('RemoteStore: before ' + i + ':' + filter[i] + '');
       if (filter[i] instanceof RegExp) {
         filter[i] = filter[i].source;
         filter[i] = 'RegExp:' + filter[i];
       }
-      console.log('RemoteStore: after ' + i + ':' + filter[i] + '');
+      //console.log('RemoteStore: after ' + i + ':' + filter[i] + '');
     }
   this.transport.send(new Message('GetList', {list: list, filter: filter, order: order}), function (msg) {
     if (false && msg == 'Ack') { // todo wtf is this

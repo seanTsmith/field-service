@@ -1101,6 +1101,13 @@ Model.prototype.getObjectStateErrors = function () {
   }
   return this.validationErrors;
 };
+Model.prototype.attribute = function (attributeName) {
+  for (var i = 0; i < this.attributes.length; i++) {
+    if (this.attributes[i].name.toUpperCase() == attributeName.toUpperCase())
+      return this.attributes[i];
+  }
+  throw new Error('attribute not found in model: ' + attributeName);
+};
 Model.prototype.get = function (attribute) {
   for (var i = 0; i < this.attributes.length; i++) {
     if (this.attributes[i].name.toUpperCase() == attribute.toUpperCase())
@@ -2972,7 +2979,7 @@ Transport.setMessageHandler('GetList', function (messageContents, fn) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.6',
+    version: '0.0.8',
     MongoStore: MongoStore
   };
 };
@@ -3209,6 +3216,8 @@ MongoStore.prototype.getModel = function (model, callback) {
           }
         }
         callback(model);
+        //console.log('model..');
+        //console.log(JSON.stringify(model));
       }
     });
   });
@@ -3307,7 +3316,10 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
           callback(list, err);
           return;
         }
+        //console.log('documents: ' + JSON.stringify(documents));
         for (var i = 0; i < documents.length; i++) {
+
+          /* OLD
           documents[i].id = documents[i]._id.toString();
           delete documents[i]._id;
           var dataPart = [];
@@ -3317,9 +3329,34 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
               dataPart.push(documents[i][j]);
           }
           list._items.push(dataPart);
+          */
+
+          var dataPart = [];
+          var model = list.model;
+          var item = documents[i];
+          //console.log('*** START ***');
+          for (var a in model.attributes) {
+            if (model.attributes.hasOwnProperty(a)) {
+              if (model.attributes[a].name == 'id')
+                model.attributes[a].value = item._id.toString();
+              else if (item[model.attributes[a].name] && model.attributes[a].type == 'ID')
+                model.attributes[a].value = (item[model.attributes[a].name]).toString();
+              else
+                model.attributes[a].value = item[model.attributes[a].name];
+              dataPart.push(model.attributes[a].value);
+            }
+          }
+          //console.log('*** STOP ***');
+          list._items.push(dataPart);
+
+
+
+          //console.log('dataPart: ' + JSON.stringify(dataPart));
         }
         list._itemIndex = list._items.length - 1;
         callback(list);
+        //console.log('list..');
+        //console.log(JSON.stringify(list));
       });
     }
   });

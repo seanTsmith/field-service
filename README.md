@@ -17,6 +17,8 @@ MEETING
 
 TO DO
 ===
+- search is validating required fields
+- validate before saving
 - Default
 - Multi-line notes
 - new invoice date default to or blank - no 1969
