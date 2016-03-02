@@ -289,11 +289,10 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
             if (self.presentation.validationMessage) {
               app.warn('Please correct: ' + attributePresentation.validationMessage);
             } else {
-              app.info('Good Job!!!');
+              saveModel();
             }
           })
         }
-        // self.presentation saveModel
       }));
 
       self.contents.push(new tgi.Command({
