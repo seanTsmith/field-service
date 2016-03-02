@@ -2,6 +2,9 @@
  * www.tgi.io/source/commands/about.js
  */
 (function () {
+  if (!site.loggedIn) {
+    return;
+  }
   var aboutPresentation = new tgi.Presentation();
   aboutPresentation.preRenderCallback = function (command, callback) {
     site.loadPanel(command, 'commands/about.md', callback);

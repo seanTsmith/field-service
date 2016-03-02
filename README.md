@@ -4,37 +4,33 @@ sudo npm install xlsjs -g
 export as 2003 from access then
 xls Customers.xls -j > Customers.json
 
-MEETING
+backup: rhc snapshot save bowen -n superseptic
+
+DONE
 ===
-- Customer email
-- Customer Source
-- Invoice call it work order
-- add fields to Invoice
-    - Emergency (Y/N)
-    - UtilityLocate (Y/N)
-    - Customer Notes
-    - Tech Notes
++ Customer email
++ Customer Source
++ add fields to Invoice
+    + Emergency (Y/N)
+    + UtilityLocate (Y/N)
+    + Customer Notes
+    + Tech Notes
+- new invoice date default to or blank - no 1969
+- search is validating required fields
+- validate before saving
+- remove the html in bootstrap that disabled field select 
+- fields all limited in length by default clipping of attribute bug
 
 TO DO
 ===
-- search is validating required fields
-- validate before saving
-- Default
-- Multi-line notes
-- new invoice date default to or blank - no 1969
-- removed drop and drag shit
 - Call invoice Work Order if no invoice number
-- change field service to bowen
-- remove the html in bootstrap that disabled field select 
 - new go to edit with no ID and blank all shizzle
-- fields all limited in length by default clipping of attribute bug
-- if invoice NULL say new ticket
-- deletes
-- invoice number width when editing invoice is fucked
-- backup database ?
 
 LATER
 ===
+- backup database automatically?
+- change field service to bowen
+- Multi-line notes
 - Set up users and admin attribute for things like delete
 - windows 10 / David's computer
 - password loaded from config

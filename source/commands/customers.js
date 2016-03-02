@@ -12,6 +12,7 @@ var designToDo_ui = ui;
   var customerCommand;
   var invoice;
   var isNewInvoice;
+  var hasOpenInvoice = false;
 
   customerPresentation.preRenderCallback = function (command, callback) {
     customerMaintenance.preRenderCallback(command, callback);
@@ -109,6 +110,7 @@ var designToDo_ui = ui;
    * After model attributes rendered add each invoice
    */
   customerMaintenance.onRenderAttributes(function (customer, callback) {
+    hasOpenInvoice = false;
     invoiceButtons = [];
     site.hostStore.getList(new tgi.List(new site.Invoice()), {CustomerID: customer.get('id')}, {},
       function (invoices, error) {
@@ -118,7 +120,12 @@ var designToDo_ui = ui;
           var attributes = [];
           var gotMore = invoices.moveFirst();
           while (gotMore) {
-            var attribute = new tgi.Attribute("Invoice #" + invoices.get('InvoiceNumber'));
+            var invoiceLabel = 'Invoice #' + invoices.get('InvoiceNumber');
+            if (!invoices.get('InvoiceNumber')) {
+              invoiceLabel = 'OPEN ORDER';
+              hasOpenInvoice = true;
+            }
+            var attribute = new tgi.Attribute(invoiceLabel);
             attribute.value = ''; //
             if (invoices.get('ServiceDate'))
               attribute.value += tgi.left('' + invoices.get('ServiceDate'), 16) + ':';
@@ -126,9 +133,12 @@ var designToDo_ui = ui;
               attribute.value += ' Tank Pumped';
             if (invoices.get('Comments'))
               attribute.value += ' ' + invoices.get('Comments');
+            else if (invoices.get('CustomerIssues'))
+            attribute.value += ' ' + invoices.get('CustomerIssues');
             attributes.push(attribute);
+
             invoiceButtons.push(new tgi.Command({
-              name: 'Invoice #' + invoices.get('InvoiceNumber'),
+              name: invoiceLabel,
               bucket: invoices.get('id'),
               icon: 'fa-pencil-square',
               type: 'Function',
@@ -141,13 +151,15 @@ var designToDo_ui = ui;
       });
   });
   customerMaintenance.onRenderCommands(function (customer, callback) {
-    invoiceButtons.push(new tgi.Command({
-      name: 'New Invoice ',
-      bucket: customer.get('id'),
-      icon: 'fa-plus-circle',
-      type: 'Function',
-      contents: editInvoice
-    }));
+    if (!hasOpenInvoice) {
+      invoiceButtons.push(new tgi.Command({
+        name: 'New Order',
+        bucket: customer.get('id'),
+        icon: 'fa-plus-circle',
+        type: 'Function',
+        contents: editInvoice
+      }));
+    }
     callback(invoiceButtons);
   });
   customerCommand = new tgi.Command({

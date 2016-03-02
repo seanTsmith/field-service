@@ -85,6 +85,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     self.contents.push('Enter any search criteria to locate the ' + self.name + ' and click find or click new to add a ' + self.name + '.');
     self.contents.push('-');
     for (var i = 1; i < self.model.attributes.length; i++) { // copy all attribs except id
+      self.model.attributes[i].validationRule = {}; // remove validations from search
       if (self.model.attributes[i].hidden == undefined)
         self.contents.push(self.model.attributes[i]);
     }
@@ -99,8 +100,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         for (var i = 1; i < self.model.attributes.length; i++) { // copy all attribs except id
           var attribute = self.model.attributes[i];
           if (attribute.value) {
-            var rex = new RegExp(attribute.value, 'i');
-            self.searchObject[attribute.name] = rex;
+            self.searchObject[attribute.name] = new RegExp(attribute.value, 'i');
           }
         }
         self.viewState = 'LIST';

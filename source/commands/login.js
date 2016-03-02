@@ -27,6 +27,7 @@
       hint: {password: true},
       value: ''
     }),
+    '-',
     '>',
     new tgi.Command({name: 'Login', type: 'Function', theme: 'info', icon: 'fa-sign-in', contents: loginSession})
   ]);

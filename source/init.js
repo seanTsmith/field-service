@@ -10,9 +10,6 @@
 var app = new tgi.Application({interface: ui});
 var site = {};
 
-
-
-
 site.loggedIn = (window.location.href.indexOf('session') > -1);
 site.nav = new tgi.Presentation();
 site.navContents = [];
@@ -29,5 +26,5 @@ site.session = new tgi.Session();
  * get app interface ready
  */
 app.setInterface(ui);
-app.set('brand', 'field service');
+app.set('brand', 'Bowen Septic');
 app.setPresentation(site.nav);
