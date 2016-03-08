@@ -177,7 +177,7 @@ Attribute.ModelID.prototype.toString = function () {
  * Methods
  */
 Attribute.prototype.toString = function () {
-  return this.name === null ? 'new Attribute' : 'Attribute: ' + this.name;
+  return this.name === null ? 'new Attribute' : 'Attribute: ' + this.name + ' = ' + this.value;
 };
 Attribute.prototype.onEvent = function (events, callback) {
   if (!(events instanceof Array)) {
@@ -2836,7 +2836,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.INTERFACE = TGI.INTERFACE || {};
 TGI.INTERFACE.BOOTSTRAP = function () {
   return {
-    version: '0.1.17',
+    version: '0.1.19',
     BootstrapInterface: BootstrapInterface
   };
 };
@@ -3449,6 +3449,7 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
 
       case 'ViewDate':
         input = addEle(inputDiv, 'p', 'form-control-static');
+        console.log('ViewDate: ' + JSON.stringify(attribute));
         if (attribute.value)
           input.innerHTML = (1 + attribute.value.getMonth()) + '/' + attribute.value.getDate() + '/' + attribute.value.getFullYear();
 
@@ -3467,6 +3468,7 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
       switch (attribute.type) {
         case 'Date':
           attribute.value = (input.value === '') ? null : attribute.coerce(input.value);
+          console.log('validateInput ' + attribute);
           if (attribute.value != null) {
             var mm = attribute.value.getMonth() + 1;
             var dd = attribute.value.getDate();
@@ -4448,7 +4450,7 @@ LocalStore.prototype._putStore = function () {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.REMOTE = function () {
   return {
-    version: '0.0.18',
+    version: '0.0.26',
     RemoteStore: RemoteStore
   };
 };
@@ -4532,15 +4534,23 @@ RemoteStore.prototype.getModel = function (model, callback) {
           var newAttribute = newAttributes[j];
           var name2 = newAttribute.name;
           if (name2 == name) {
-            if (newAttribute.value === undefined)
+            if (newAttribute.value === undefined || newAttribute.value === null) {
               attribute.value = null;
-            else
+            } else if (attribute.type == 'Date') {
+              try {
+                attribute.value = new Date(newAttribute.value);
+              } catch (e) {
+                attribute.value = null;
+              }
+            } else {
               attribute.value = newAttribute.value;
+            }
             gotOne = true;
           }
           if (!gotOne)
             attribute.value = null;
         }
+        //console.log('!!! GetModel attribute: ' + attribute);
       }
       if (typeof c == 'string')
         callback(model, c);

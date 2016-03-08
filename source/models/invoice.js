@@ -11,8 +11,8 @@
     }
     var tech1ID = new tgi.Attribute.ModelID(new site.Tech());
     args.attributes.push(new tgi.Attribute({name: 'CustomerID', type: 'ID', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Customer Issues', type: 'String(255)'}));
-    args.attributes.push(new tgi.Attribute({name: 'Emergency', type: 'Boolean', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Customer Issues', type: 'String(255)', validationRule: {required: true}}));
+    args.attributes.push(new tgi.Attribute({name: 'Emergency', type: 'Boolean'}));
     args.attributes.push(new tgi.Attribute({name: 'UtilityLocate', label: 'Utility Locate', type: 'Boolean', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'ServiceDate', label: 'Service Date', type: 'Date'}));
     args.attributes.push(new tgi.Attribute({name: 'PrimaryTechID', label: 'Primary Tech', type: 'ID', hidden: '*'}));

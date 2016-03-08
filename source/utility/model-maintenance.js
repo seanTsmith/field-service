@@ -197,7 +197,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
             self.contents.push('' + error);
             callbackDone();
           } else {
-            renderModel();
+            renderModelView();
           }
         });
       } catch (e) {
@@ -212,8 +212,8 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     /**
      * Model is ready to be rendered
      */
-    function renderModel() {
-      console.log('renderModel here');
+    function renderModelView() {
+      console.log('renderModelView here');
       for (var i = 1; i < self.viewModel.attributes.length; i++) { // copy all attribs except id
         //console.log('self.model.attributes[i] ' + self.viewModel.attributes[i]);
         if (self.viewModel.attributes[i].value)
@@ -269,28 +269,26 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
     if (self.modelID) {
       self.editModel.set('id', self.modelID);
       try {
-        console.log('GET IT');
         site.hostStore.getModel(self.editModel, function (model, error) {
-          console.log('GOT IT');
           if (error) {
             self.contents.push('Error getting  ' + self.name + ':');
             self.contents.push('' + error);
             callbackDone();
           } else {
-            renderModel();
+            rendeModelEdit();
           }
         });
       } catch (e) {
         console.log('error caught ' + e);
       }
     } else {
-      renderModel();
+      rendeModelEdit();
     }
 
     /**
      * Model is ready to be rendered
      */
-    function renderModel() {
+    function rendeModelEdit() {
       if (self.modelID)
         self.contents.push('Make any changes to ' + self.name + ' and press SAVE to update database.');
       else

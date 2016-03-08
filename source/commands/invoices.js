@@ -33,8 +33,8 @@
   /**
    * force
    */
-  setTimeout(function () {
-    invoiceCommand.execute(ui);
-  }, 100);
+  //setTimeout(function () {
+  //  invoiceCommand.execute(ui);
+  //}, 100);
 
 }());

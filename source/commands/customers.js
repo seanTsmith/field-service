@@ -53,6 +53,8 @@ var designToDo_ui = ui;
 
   function saveInvoice() {
     try {
+      console.log('saveInvoice() ...');
+      console.log(JSON.stringify(invoice));
       site.hostStore.putModel(invoice, function (model, error) {
         if (error) {
           self.contents.push('Error putting  ' + invoice + ':');
@@ -82,11 +84,9 @@ var designToDo_ui = ui;
 
     var primaryTechID = invoice.get('PrimaryTechID');
     var secondaryTechID = invoice.get('secondaryTechID');
-    console.log('shizz');
     for (var i = 0; i < site.techID.length; i++) {
       var techID = site.techID[i];
       if (techID==primaryTechID) {
-        console.log('bing ' + site.techList[i]);
         primaryTech.value = site.techList[i];
       }
 
@@ -95,7 +95,7 @@ var designToDo_ui = ui;
     }
 
 
-    invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
+    //invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
     customerCommand.presentationMode = 'Edit';
     customerMaintenance.contents.push((isNewInvoice ? '#### New Invoice' : '#### Modify Invoice'));
     customerMaintenance.contents.push('-');

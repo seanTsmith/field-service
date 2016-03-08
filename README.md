@@ -9,6 +9,8 @@ TO DO
 - Utility Locate To Do
 - Fix 1969 service date when blanks    
 - Massage data to reflect correct state (if invoice number supplied then utility locate done)
+- service date getting stored as string
+- new bug create new order make tech invalid - save twice and all bools toggle!!! / or just new order save
 
 TO DO LATER
 ===

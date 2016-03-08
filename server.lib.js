@@ -177,7 +177,7 @@ Attribute.ModelID.prototype.toString = function () {
  * Methods
  */
 Attribute.prototype.toString = function () {
-  return this.name === null ? 'new Attribute' : 'Attribute: ' + this.name;
+  return this.name === null ? 'new Attribute' : 'Attribute: ' + this.name + ' = ' + this.value;
 };
 Attribute.prototype.onEvent = function (events, callback) {
   if (!(events instanceof Array)) {
@@ -2845,7 +2845,7 @@ TGI.STORE.HOST = function () {
  */
 
 Transport.setMessageHandler('PutModel', function (messageContents, fn) {
-  //console.log('PutModel here');
+  console.log('PutModel here damn it');
   // create proxy for client model
   var ProxyPutModel = function (args) {
     Model.call(this, args);
@@ -2853,14 +2853,21 @@ Transport.setMessageHandler('PutModel', function (messageContents, fn) {
     this.attributes = [];
     var a, attrib, v;
     for (a in messageContents.attributes) {
+      //console.log('putting ' + messageContents.attributes[a]);
+      //console.log('json  ' + JSON.stringify(messageContents.attributes[a]));
       if (messageContents.attributes[a].type == 'Model') {
-        //console.log('putting ' + messageContents.attributes[a]);
-        //console.log('json  ' + JSON.stringify(messageContents.attributes[a]));
         v = new Attribute.ModelID(createModelFromModelType(messageContents.attributes[a].modelType));
         v.value = messageContents.attributes[a].value.value;
         if (messageContents.attributes[a].value.name)
           v.name = messageContents.attributes[a].value.name;
         attrib = new Attribute({name: messageContents.attributes[a].name, type: 'Model', value: v});
+      } else if (messageContents.attributes[a].type == 'Date') {
+        attrib = new Attribute(messageContents.attributes[a].name, messageContents.attributes[a].type);
+        try {
+          attrib.value = new Date(messageContents.attributes[a].value);
+        } catch (e) {
+          attrib.value = null;
+        }
       } else {
         attrib = new Attribute(messageContents.attributes[a].name, messageContents.attributes[a].type);
         if (attrib.name == 'id') { // TODO only If mongo! or refactor mongo to normalize IDs
@@ -2985,7 +2992,7 @@ Transport.setMessageHandler('GetList', function (messageContents, fn) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.11',
+    version: '0.0.12',
     MongoStore: MongoStore
   };
 };
@@ -3222,7 +3229,7 @@ MongoStore.prototype.getModel = function (model, callback) {
           }
         }
         callback(model);
-        //console.log('model..');
+        //console.log('MongoStore.prototype.getModel model...');
         //console.log(JSON.stringify(model));
       }
     });
