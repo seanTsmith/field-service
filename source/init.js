@@ -15,6 +15,8 @@ site.nav = new tgi.Presentation();
 site.navContents = [];
 site.toolsMenu = [];
 site.modelsMenu = [];
+site.adminMenu = ['Administrative Functions','-'];
+
 
 /**
  * Core models for user and session

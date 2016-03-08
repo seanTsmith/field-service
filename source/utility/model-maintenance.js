@@ -146,6 +146,27 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
           app.err('' + e);
         } else {
           self.contents.push(list);
+          self.contents.push(new tgi.Command({
+            name: 'Search',
+            theme: 'default',
+            icon: 'fa-undo',
+            type: 'Function',
+            contents: function () {
+                self.viewState = 'SEARCH';
+                command.execute(designToDo_ui);
+            }
+          }));
+          self.contents.push(new tgi.Command({
+            name: 'New ' + self.model.modelType,
+            theme: 'default',
+            icon: 'fa-plus-circle',
+            type: 'Function',
+            contents: function () {
+              self.modelID = null;
+              self.viewState = 'EDIT';
+              command.execute(designToDo_ui);
+            }
+          }));
         }
         callbackDone();
       });
@@ -161,6 +182,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
    */
   function renderView() {
     command.presentationMode = 'View';
+    console.log('view here');
 
     /**
      * Create a new model in self.viewModel and load if editing existing
@@ -191,6 +213,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
      * Model is ready to be rendered
      */
     function renderModel() {
+      console.log('renderModel here');
       for (var i = 1; i < self.viewModel.attributes.length; i++) { // copy all attribs except id
         //console.log('self.model.attributes[i] ' + self.viewModel.attributes[i]);
         if (self.viewModel.attributes[i].value)
@@ -325,7 +348,6 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
             self.contents.push('' + error);
           } else {
             self.modelID = model.get('id');
-            ;
             self.viewState = 'VIEW';
             command.execute(designToDo_ui);
           }

@@ -22,10 +22,12 @@
          * Make sure database does not exist
          */
           function () {
+          console.log('Make sure database does not exist');
           var task = this;
           try {
             var sysInfoList = new tgi.List(new SysInfo());
-            site.hostStore.getList(sysInfoList, {}, {}, function (model, error) {
+            site.hostStore.getList(sysInfoList, {}, {}, function (list, error) {
+              console.log('got list: ' + list);
               if (typeof error != 'undefined') {
                 app.err('error getting list' + error);
                 task.abort();
@@ -46,6 +48,7 @@
          * Create SysInfo
          */
           function () {
+          console.log('Create SysInfo');
           var task = this;
           try {
             sysInfo = new SysInfo();
@@ -66,6 +69,7 @@
          * Create admin
          */
           function () {
+          console.log('Create admin');
           var task = this;
           try {
             user = new tgi.User();

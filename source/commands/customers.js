@@ -50,6 +50,7 @@ var designToDo_ui = ui;
       console.log('error ' + e);
     }
   }
+
   function saveInvoice() {
     try {
       site.hostStore.putModel(invoice, function (model, error) {
@@ -57,6 +58,7 @@ var designToDo_ui = ui;
           self.contents.push('Error putting  ' + invoice + ':');
           self.contents.push('' + error);
         } else {
+          app.info('Invoice saved');
           customerMaintenance.viewState = 'VIEW';
           customerCommand.execute(designToDo_ui);
         }
@@ -71,24 +73,107 @@ var designToDo_ui = ui;
    * Render custom view (invoice edit)
    */
   customerMaintenance.onCustomViewState(function (callback) {
+
+    var primaryTech = new tgi.Attribute({name: 'Primary Tech', type: 'String(25)', quickPick: site.techList, validationRule: {isOneOf: site.techList}});
+    var secondaryTech = new tgi.Attribute({name: 'Secondary Tech', type: 'String(25)', quickPick: site.techList, validationRule: {isOneOf: site.techList}});
+
+    primaryTech.value = '(unassigned)';
+    secondaryTech.value = '(unassigned)';
+
+    var primaryTechID = invoice.get('PrimaryTechID');
+    var secondaryTechID = invoice.get('secondaryTechID');
+    console.log('shizz');
+    for (var i = 0; i < site.techID.length; i++) {
+      var techID = site.techID[i];
+      if (techID==primaryTechID) {
+        console.log('bing ' + site.techList[i]);
+        primaryTech.value = site.techList[i];
+      }
+
+      if (techID==secondaryTechID)
+        secondaryTech.value = site.techList[i];
+    }
+
+
     invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
     customerCommand.presentationMode = 'Edit';
     customerMaintenance.contents.push((isNewInvoice ? '#### New Invoice' : '#### Modify Invoice'));
     customerMaintenance.contents.push('-');
-    for (var i = 2; i < invoice.attributes.length; i++) {
-      customerMaintenance.contents.push(invoice.attributes[i]);
+    for (i = 2; i < invoice.attributes.length; i++) {
+      if (invoice.attributes[i].name == 'PrimaryTechID')
+        customerMaintenance.contents.push(primaryTech);
+      else if (invoice.attributes[i].name == 'SecondaryTechID')
+        customerMaintenance.contents.push(secondaryTech);
+      else
+        customerMaintenance.contents.push(invoice.attributes[i]);
     }
     customerMaintenance.contents.push('-');
-
-
     customerMaintenance.contents.push(new tgi.Command({
       name: 'Save Invoice',
       theme: 'success',
       icon: 'fa-check-circle',
-      type: 'Function',
-      contents: saveInvoice
+      type: 'Procedure',
+      contents: new tgi.Procedure({
+        tasks: [
+          function () {
+            var task = this;
+            customerPresentation.validate(function () {
+              if (customerPresentation.validationMessage) {
+                app.warn('Please correct: ' + customerPresentation.validationMessage);
+              } else {
+                task.complete();
+              }
+            })
+          },
+          function () {
+            var task = this;
+            if (primaryTech.value == '(unassigned)') {
+              task.complete();
+            } else {
+              site.hostStore.getList(new tgi.List(new site.Tech()), {Name: primaryTech.value}, function (list, error) {
+                if (error) {
+                  console.log('error loading tech names: ' + error);
+                } else {
+                  if (list.moveFirst()) {
+                    primaryTechID = list.get('id');
+                    task.complete();
+                  } else {
+                    app.err('tech not found');
+                    task.abort();
+                  }
+                }
+              });
+            }
+          },
+          function () {
+            var task = this;
+            if (secondaryTech.value == '(unassigned)') {
+              task.complete();
+            } else {
+              site.hostStore.getList(new tgi.List(new site.Tech()), {Name: secondaryTech.value}, function (list, error) {
+                if (error) {
+                  console.log('error loading tech names: ' + error);
+                } else {
+                  if (list.moveFirst()) {
+                    secondaryTechID = list.get('id');
+                    task.complete();
+                  } else {
+                    app.err('tech not found');
+                    task.abort();
+                  }
+                }
+              });
+            }
+          },
+          function () {
+            invoice.set('PrimaryTechID', primaryTechID);
+            invoice.set('secondaryTechID', secondaryTechID);
+            saveInvoice();
+            task.complete();
+          }
+        ]
+      })
     }));
-
     customerMaintenance.contents.push(new tgi.Command({
       name: 'Cancel',
       theme: 'default',
@@ -134,7 +219,7 @@ var designToDo_ui = ui;
             if (invoices.get('Comments'))
               attribute.value += ' ' + invoices.get('Comments');
             else if (invoices.get('CustomerIssues'))
-            attribute.value += ' ' + invoices.get('CustomerIssues');
+              attribute.value += ' ' + invoices.get('CustomerIssues');
             attributes.push(attribute);
 
             invoiceButtons.push(new tgi.Command({

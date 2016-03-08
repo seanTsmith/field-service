@@ -14,6 +14,7 @@
    * After model attributes rendered add each invoice
    */
   invoiceMaintenance.onRenderAttributes(function (invoice, callback) {
+    callback([]);
   });
 
   invoiceMaintenance.onRenderCommands(function (invoice, callback) {
@@ -32,8 +33,8 @@
   /**
    * force
    */
-  //setTimeout(function () {
-  //  invoiceCommand.execute(ui);
-  //}, 100);
+  setTimeout(function () {
+    invoiceCommand.execute(ui);
+  }, 100);
 
 }());

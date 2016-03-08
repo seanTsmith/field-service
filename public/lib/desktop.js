@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.31',
+      version: '0.4.33',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -945,7 +945,10 @@ List.prototype.get = function (attribute) {
   for (var i = 0; i < this.model.attributes.length; i++) {
     if (this.model.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
       if (this.model.attributes[i].type == 'Date' && !(this._items[this._itemIndex][i] instanceof Date)) {
-        return new Date(this._items[this._itemIndex][i]); // todo problem with stores not keeping date type (mongo or host) kludge fix for now
+        if (this._items[this._itemIndex][i] === null || this._items[this._itemIndex][i] === undefined)
+          return null;
+        else
+          return new Date(this._items[this._itemIndex][i]); // todo problem with stores not keeping date type (mongo or host) kludge fix for now
       } else {
         return this._items[this._itemIndex][i];
       }
@@ -2833,7 +2836,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.INTERFACE = TGI.INTERFACE || {};
 TGI.INTERFACE.BOOTSTRAP = function () {
   return {
-    version: '0.1.11',
+    version: '0.1.17',
     BootstrapInterface: BootstrapInterface
   };
 };
@@ -2988,7 +2991,7 @@ BootstrapInterface.prototype.refreshNavigation = function () {
   var separatorSeen = false;
   for (var menuItem in menuContents) if (menuContents.hasOwnProperty(menuItem)) {
     if (menuContents[menuItem].type == 'Menu') {
-      var parentMenu = this.addNavBarListMenu(this.doc.navBarLeft, menuContents[menuItem].name);
+      var parentMenu = this.addNavBarListMenu(this.doc.navBarLeft, menuContents[menuItem]);
       var subMenu = menuContents[menuItem].contents;
       for (var subPres in subMenu)
         if (subMenu.hasOwnProperty(subPres))
@@ -3011,9 +3014,7 @@ BootstrapInterface.prototype.addNavigationItem = function (parent, action) {
       icon = '<i class="fa ' + action.icon + '"></i>&nbsp;';
     else
       icon = '<span class="glyphicon ' + action.icon + '"></span>&nbsp;';
-    //<a href="#"><span class="glyphicon glyphicon-chevron-down panel-glyph-left text-muted"></span></a>
   }
-  //listItem.innerHTML = '<a >' + icon + action.name + '</a>';
   listItem.innerHTML = '<button type="button" class="btn btn-' + theme + ' navbar-btn">' + icon + action.name + '</button>';
   $(listItem).click(function (e) {
     bootstrapInterface.dispatch(new Request({type: 'Command', command: action}));
@@ -3042,13 +3043,20 @@ BootstrapInterface.prototype.addNavBarListItem = function (parent, action, icon)
   listItem.innerHTML = html;
   parent.appendChild(listItem);
 };
-BootstrapInterface.prototype.addNavBarListMenu = function (parent, name) {
+BootstrapInterface.prototype.addNavBarListMenu = function (parent, action) {
+
+  var icon = '';
+  var theme = action.theme || 'default';
+  if (action.icon) {
+    if (left(action.icon,2) == 'fa')
+      icon = '<i class="fa ' + action.icon + '"></i>&nbsp;';
+    else
+      icon = '<span class="glyphicon ' + action.icon + '"></span>&nbsp;';
+  }
 
   var dropDown = document.createElement('li');
   dropDown.className = "dropdown";
-  //dropDown.innerHTML = '<a href="#" class="dropdown-toggle navbar-menu" data-toggle="dropdown">' + name + '<b class="caret"></b></a>';
-  dropDown.innerHTML = '<button type="button" class="dropdown-toggle btn btn-default navbar-btn" data-toggle="dropdown">' + name + '&nbsp;<b class="caret"></b></button>';
-  // listItem.innerHTML = '<button type="button" class="btn btn-default navbar-btn">' + action.name + '</button>';
+  dropDown.innerHTML = '<button type="button" class="dropdown-toggle btn btn-' + theme + ' navbar-btn" data-toggle="dropdown">' + icon + action.name + '&nbsp;<b class="caret"></b></button>';
   parent.appendChild(dropDown);
 
   var dropDownMenu = document.createElement('ul');
@@ -3593,7 +3601,10 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
               //console.log('dValue=' + dValue);
               // addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
               // addEle(tBodyRow, 'td').innerHTML = dValue.toString(); // todo use moment.js
-              addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
+              if (dValue)
+                addEle(tBodyRow, 'td').innerHTML = left(dValue.toISOString(), 10);
+              else
+                addEle(tBodyRow, 'td').innerHTML = '&nbsp;';
               break;
             case 'Boolean':
               if (dValue)
@@ -4437,7 +4448,7 @@ LocalStore.prototype._putStore = function () {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.REMOTE = function () {
   return {
-    version: '0.0.14',
+    version: '0.0.18',
     RemoteStore: RemoteStore
   };
 };
@@ -4656,6 +4667,8 @@ RemoteStore.prototype.getList = function (list, filter, arg3, arg4) {
     } else if (msg.type == 'GetListAck') {
       list._items = msg.contents._items;
       list._itemIndex = msg.contents._itemIndex;
+      //console.log('GetListAck..............');
+      //console.log(JSON.stringify(list));
       callback(list);
     } else {
       callback(list, Error(msg));
