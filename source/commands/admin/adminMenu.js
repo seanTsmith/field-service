@@ -3,6 +3,9 @@
  */
 
 (function () {
+  if (!site.loggedIn) {
+    return;
+  }
 
   var adminCommand = new tgi.Command({
     name: 'Admin',
@@ -11,4 +14,5 @@
     contents: site.adminMenu
   });
   site.navContents.push(adminCommand);
+
 }());
