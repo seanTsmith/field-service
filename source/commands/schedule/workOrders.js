@@ -1,5 +1,5 @@
 /**---------------------------------------------------------------------------------------------------------------------
- * field-service/source/commands/admin/tech.js
+ * field-service/source/commands/schedule/workOrders.js
  */
 
 (function () {
@@ -9,13 +9,13 @@
     techMaintenance.preRenderCallback(command, callback);
   };
   var techCommand = new tgi.Command({
-    name: 'Tech List',
-    theme: 'danger',
+    name: 'Work Orders',
+    theme: 'warning',
     type: 'Presentation',
-    icon: 'fa-group',
+    icon: 'fa-truck',
     contents: techPresentation
   });
-  site.adminMenu.push(techCommand);
+  site.scheduleMenu.push(techCommand);
 
   /**
    * force

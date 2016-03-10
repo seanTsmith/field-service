@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.33',
+      version: '0.4.36',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -417,8 +417,10 @@ Attribute.getEvents = function () {
 function Command(args) {
   if (false === (this instanceof Command)) throw new Error('new operator required');
   if (typeof args == 'function') { // shorthand for function command
-    var theFunc = args;
-    args = {type: 'Function', contents: theFunc};
+    args = {type: 'Function', contents: args};
+  }
+  if (args instanceof Procedure) { // shorthand for Procedure command
+    args = {type: 'Procedure', contents: args};
   }
   args = args || {};
   var i;
@@ -1289,6 +1291,9 @@ Message.getTypes = function () {
  */
 var Procedure = function (args) {
   if (false === (this instanceof Procedure)) throw new Error('new operator required');
+  if (args instanceof Array) { // shorthand for Procedure command
+    args = {tasks: args};
+  }
   args = args || {};
   var i;
   var unusedProperties = getInvalidProperties(args, ['tasks', 'tasksNeeded', 'tasksCompleted']);
@@ -2836,7 +2841,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.INTERFACE = TGI.INTERFACE || {};
 TGI.INTERFACE.BOOTSTRAP = function () {
   return {
-    version: '0.1.19',
+    version: '0.1.20',
     BootstrapInterface: BootstrapInterface
   };
 };
@@ -3504,7 +3509,7 @@ BootstrapInterface.prototype.renderPanelBody = function (panel, command) {
     attribute.onEvent('StateChange', function () {
       switch (mode + attribute.type) {
         case 'EditBoolean':
-          if (attribute.value != input.checked)
+          if (( attribute.value ? true : false ) != input.checked)
             $(input).click();
           break;
         case 'EditDate':
@@ -4525,6 +4530,10 @@ RemoteStore.prototype.getModel = function (model, callback) {
   if (typeof callback != "function") throw new Error('callback required');
   this.transport.send(new Message('GetModel', model), function (msg) {
     if (msg.type == 'GetModelAck') {
+      if (typeof msg.contents == 'string') {
+        callback(model, msg.contents);
+        return;
+      }
       var newAttributes = msg.contents.attributes;
       for (var i = 0; i < model.attributes.length; i++) {
         var attribute = model.attributes[i];

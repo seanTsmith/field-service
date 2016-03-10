@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.33',
+      version: '0.4.36',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -417,8 +417,10 @@ Attribute.getEvents = function () {
 function Command(args) {
   if (false === (this instanceof Command)) throw new Error('new operator required');
   if (typeof args == 'function') { // shorthand for function command
-    var theFunc = args;
-    args = {type: 'Function', contents: theFunc};
+    args = {type: 'Function', contents: args};
+  }
+  if (args instanceof Procedure) { // shorthand for Procedure command
+    args = {type: 'Procedure', contents: args};
   }
   args = args || {};
   var i;
@@ -1289,6 +1291,9 @@ Message.getTypes = function () {
  */
 var Procedure = function (args) {
   if (false === (this instanceof Procedure)) throw new Error('new operator required');
+  if (args instanceof Array) { // shorthand for Procedure command
+    args = {tasks: args};
+  }
   args = args || {};
   var i;
   var unusedProperties = getInvalidProperties(args, ['tasks', 'tasksNeeded', 'tasksCompleted']);
@@ -2836,7 +2841,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.HOST = function () {
   return {
-    version: '0.0.9'
+    version: '0.0.29'
   };
 };
 
@@ -2853,8 +2858,8 @@ Transport.setMessageHandler('PutModel', function (messageContents, fn) {
     this.attributes = [];
     var a, attrib, v;
     for (a in messageContents.attributes) {
-      //console.log('putting ' + messageContents.attributes[a]);
-      //console.log('json  ' + JSON.stringify(messageContents.attributes[a]));
+      console.log('putting ' + messageContents.attributes[a]);
+      console.log('json  ' + JSON.stringify(messageContents.attributes[a]));
       if (messageContents.attributes[a].type == 'Model') {
         v = new Attribute.ModelID(createModelFromModelType(messageContents.attributes[a].modelType));
         v.value = messageContents.attributes[a].value.value;
@@ -2864,7 +2869,7 @@ Transport.setMessageHandler('PutModel', function (messageContents, fn) {
       } else if (messageContents.attributes[a].type == 'Date') {
         attrib = new Attribute(messageContents.attributes[a].name, messageContents.attributes[a].type);
         try {
-          attrib.value = new Date(messageContents.attributes[a].value);
+          attrib.value = messageContents.attributes[a].value === null ? null : new Date(messageContents.attributes[a].value);
         } catch (e) {
           attrib.value = null;
         }
@@ -2992,7 +2997,7 @@ Transport.setMessageHandler('GetList', function (messageContents, fn) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.12',
+    version: '0.0.15',
     MongoStore: MongoStore
   };
 };
@@ -3118,6 +3123,8 @@ MongoStore.prototype.putModel = function (model, callback) {
   if (typeof callback != "function") throw new Error('callback required');
   var store = this;
   var a;
+  console.log('MongoStore.prototype.putModel...');
+  console.log(JSON.stringify(model));
   store.mongoDatabase.collection(model.modelType, function (err, collection) {
     if (err) {
       console.log('putModel collection error: ' + err);
@@ -3147,7 +3154,7 @@ MongoStore.prototype.putModel = function (model, callback) {
       }
     }
     if (newModel) {
-//      console.log('collection.insert (modelData): ' + JSON.stringify(modelData));
+      console.log('collection.insert (modelData): ' + JSON.stringify(modelData));
       collection.insert(modelData, {safe: true}, function (err, result) {
         if (err) {
           console.log('putModel insert error: ' + err);

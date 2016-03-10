@@ -13,7 +13,8 @@
     args.attributes.push(new tgi.Attribute({name: 'CustomerID', type: 'ID', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Customer Issues', type: 'String(255)', validationRule: {required: true}}));
     args.attributes.push(new tgi.Attribute({name: 'Emergency', type: 'Boolean'}));
-    args.attributes.push(new tgi.Attribute({name: 'UtilityLocate', label: 'Utility Locate', type: 'Boolean', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'UtilityLocate', label: 'Utility Locate', type: 'Boolean'}));
+    args.attributes.push(new tgi.Attribute({name: 'UtilityReference', label: 'Utility Ref #', type: 'String(20)'}));
     args.attributes.push(new tgi.Attribute({name: 'ServiceDate', label: 'Service Date', type: 'Date'}));
     args.attributes.push(new tgi.Attribute({name: 'PrimaryTechID', label: 'Primary Tech', type: 'ID', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'SecondaryTechID', label: 'Secondary Tech', type: 'ID', hidden: '*'}));
@@ -23,7 +24,9 @@
     args.attributes.push(new tgi.Attribute({name: 'Comments', label: 'Tech Notes', type: 'String(255)', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "Invoice";
-    //this.set('ServiceDate', new Date());
+    this.set('UtilityLocate',false);
+    this.set('TankPumped',false);
+    this.set('Emergency',false);
   };
   site.Invoice.prototype = Object.create(tgi.Model.prototype);
 }());

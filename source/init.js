@@ -16,6 +16,7 @@ site.navContents = [];
 site.toolsMenu = [];
 site.modelsMenu = [];
 site.adminMenu = ['Administrative Functions','-'];
+site.scheduleMenu = ['Scheduling Functions','-'];
 
 
 /**

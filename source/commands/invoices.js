@@ -3,6 +3,9 @@
  */
 
 (function () {
+  if (!site.loggedIn) {
+    return;
+  }
   var invoicePresentation = new tgi.Presentation();
   var invoiceMaintenance = new site.ModelMaintenance(site.Invoice);
 

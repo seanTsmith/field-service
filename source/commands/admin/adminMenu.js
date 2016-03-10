@@ -11,6 +11,7 @@
     name: 'Admin',
     type: 'Menu',
     theme: 'danger',
+    icon: 'fa-group',
     contents: site.adminMenu
   });
   site.navContents.push(adminCommand);

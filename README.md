@@ -5,15 +5,17 @@ TO DO
     + Price
     + Tech 1
     + Tech 2
++ new bug create new order make tech invalid - save twice and all bools toggle!!! / or just new order save
++ service date getting stored as string
++ Fix 1969 service date when blanks (FIXED... TEST)    
+
 - Schedule Days
 - Utility Locate To Do
-- Fix 1969 service date when blanks    
 - Massage data to reflect correct state (if invoice number supplied then utility locate done)
-- service date getting stored as string
-- new bug create new order make tech invalid - save twice and all bools toggle!!! / or just new order save
 
 TO DO LATER
 ===
+- Weird thing where panels move
 - Set up users and admin attribute for things like delete
 - Call invoice Work Order if no invoice number
 
@@ -94,3 +96,24 @@ LATER
 - invoice.attributes[2] refs are shit
 - invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
 - Update MongoDB and loggin fails - fix deprected (new is xxx.sort())     
+
+
+
+Call utility locate and provide:
+    - address, city, county and cross street
+
+
+xxxx
+locate number reference -  
+county ? add to customer drop down
+city
+cross street ?
+
+- ref # 
+- date
+- county
+- city
+- address
+- cross street
+
+

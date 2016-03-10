@@ -182,7 +182,6 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
    */
   function renderView() {
     command.presentationMode = 'View';
-    console.log('view here');
 
     /**
      * Create a new model in self.viewModel and load if editing existing
