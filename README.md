@@ -9,8 +9,8 @@ TO DO
 + service date getting stored as string
 + Fix 1969 service date when blanks (FIXED... TEST)    
 
++ Utility Locate To Do
 - Schedule Days
-- Utility Locate To Do
 - Massage data to reflect correct state (if invoice number supplied then utility locate done)
 
 TO DO LATER

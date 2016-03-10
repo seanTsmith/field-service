@@ -3,9 +3,7 @@
  */
 
 var site = {};
-
 var fs = require('fs');
-
 var customer;
 var records;
 var recno = 0;
