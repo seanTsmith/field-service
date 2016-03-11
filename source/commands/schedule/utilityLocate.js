@@ -126,54 +126,6 @@ var designToDo_ui = ui;
     };
   }
 
-  TGI.STORE.REMOTE().RemoteStore.prototype.mygetModel = function (model, callback) {
-    if (!(model instanceof tgi.Model)) throw new Error('argument must be a Model');
-    if (model.getObjectStateErrors().length) throw new Error('model has validation errors');
-    if (!model.attributes[0].value) throw new Error('ID not set');
-    if (typeof callback != "function") throw new Error('callback required');
-    this.transport.send(new tgi.Message('GetModel', model), function (msg) {
-      if (msg.type == 'GetModelAck') {
-        if (typeof msg.contents == 'string') {
-          callback(model, msg.contents);
-          return;
-        }
-        var newAttributes = msg.contents.attributes;
-        for (var i = 0; i < model.attributes.length; i++) {
-          var attribute = model.attributes[i];
-          var name = model.attributes[i].name;
-          var gotOne = false;
-          for (var j = 0; j < newAttributes.length; j++) {
-            var newAttribute = newAttributes[j];
-            var name2 = newAttribute.name;
-            if (name2 == name) {
-              if (newAttribute.value === undefined || newAttribute.value === null) {
-                attribute.value = null;
-              } else if (attribute.type == 'Date') {
-                try {
-                  attribute.value = new Date(newAttribute.value);
-                } catch (e) {
-                  attribute.value = null;
-                }
-              } else {
-                attribute.value = newAttribute.value;
-              }
-              gotOne = true;
-            }
-            if (!gotOne)
-              attribute.value = null;
-          }
-          //console.log('!!! GetModel attribute: ' + attribute);
-        }
-        if (typeof c == 'string')
-          callback(model, c);
-        else
-          callback(model);
-      } else {
-        callback(model, Error(msg));
-      }
-    });
-  };
-
   /**
    * Render the order
    */
@@ -203,7 +155,6 @@ var designToDo_ui = ui;
     });
 
     function renderInfo() {
-
       self.contents.push('#### Customer: ' + customer.get('Customer'));
       self.contents.push('Make any corrections to address info:');
       self.contents.push(customer.attribute('County'));
@@ -216,7 +167,6 @@ var designToDo_ui = ui;
       self.contents.push(invoice.attribute('UtilityReference'));
       self.contents.push(invoice.attribute('ServiceDate'));
       self.contents.push('-');
-
       self.contents.push(new tgi.Command({
         name: 'Save Changes',
         theme: 'success',
@@ -232,7 +182,6 @@ var designToDo_ui = ui;
           })
         }
       }));
-
       finishUp();
     }
 
@@ -274,8 +223,8 @@ var designToDo_ui = ui;
   /**
    * force
    */
-  setTimeout(function () {
-    utilityLocateCommand.execute(ui);
-  }, 100);
+  //setTimeout(function () {
+  //  utilityLocateCommand.execute(ui);
+  //}, 100);
 
 }());

@@ -2841,7 +2841,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.INTERFACE = TGI.INTERFACE || {};
 TGI.INTERFACE.BOOTSTRAP = function () {
   return {
-    version: '0.1.20',
+    version: '0.1.21',
     BootstrapInterface: BootstrapInterface
   };
 };
@@ -3840,6 +3840,54 @@ BootstrapInterface.prototype.htmlDialog = function () {
   choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
   $(choice).on('click', function () {
     bootstrapInterface.doc.chooseDialogChoice = 7;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 8;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 9;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 10;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 11;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 12;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 13;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 14;
+    $(bootstrapInterface.doc.chooseDialog).modal('hide');
+  });
+  this.doc.chooseDialogButtons.push(choice);
+  choice = addEle(modalBody, 'button', 'btn btn-default btn-block');
+  $(choice).on('click', function () {
+    bootstrapInterface.doc.chooseDialogChoice = 15;
     $(bootstrapInterface.doc.chooseDialog).modal('hide');
   });
   this.doc.chooseDialogButtons.push(choice);
