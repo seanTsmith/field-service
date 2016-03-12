@@ -7,7 +7,7 @@ var designToDo_ui = ui;
     return;
   }
   var customerPresentation = new tgi.Presentation();
-  var customerMaintenance = new site.ModelMaintenance(site.Customer);
+  var customerMaintenance = new site.ModelMaintenance(site.Customer, {Customer: 1});
   var invoiceButtons = [];
   var customerCommand;
   var invoice;
@@ -53,16 +53,31 @@ var designToDo_ui = ui;
 
   function saveInvoice() {
     try {
-      console.log('saveInvoice() ...');
-      console.log(JSON.stringify(invoice));
+      //console.log('saveInvoice() ...');
+      //console.log(JSON.stringify(invoice));
+
+      /**
+       * Massage data before saving
+       */
+
+      if (invoice.get('InvoiceNumber') === null)
+        invoice.set('InvoiceNumber', '');
+
+      if (invoice.get('InvoiceNumber').length)
+        invoice.set('UtilityLocate', true);
+
+
       site.hostStore.putModel(invoice, function (model, error) {
         if (error) {
           self.contents.push('Error putting  ' + invoice + ':');
           self.contents.push('' + error);
         } else {
-          app.info('Invoice saved');
           customerMaintenance.viewState = 'VIEW';
           customerCommand.execute(designToDo_ui);
+          if (invoice.get('InvoiceNumber') && invoice.get('InvoiceNumber').length)
+            app.info('Invoice saved');
+          else
+            app.info('Work Order saved');
         }
 
       });
@@ -86,18 +101,18 @@ var designToDo_ui = ui;
     var secondaryTechID = invoice.get('secondaryTechID');
     for (var i = 0; i < site.techID.length; i++) {
       var techID = site.techID[i];
-      if (techID==primaryTechID) {
+      if (techID == primaryTechID) {
         primaryTech.value = site.techList[i];
       }
 
-      if (techID==secondaryTechID)
+      if (techID == secondaryTechID)
         secondaryTech.value = site.techList[i];
     }
 
 
     //invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
     customerCommand.presentationMode = 'Edit';
-    customerMaintenance.contents.push((isNewInvoice ? '#### New Invoice' : '#### Modify Invoice'));
+    customerMaintenance.contents.push((isNewInvoice ? '#### New Invoice' : '#### Modify Order / Invoice'));
     customerMaintenance.contents.push('-');
     for (i = 2; i < invoice.attributes.length; i++) {
       if (invoice.attributes[i].name == 'PrimaryTechID')
@@ -109,7 +124,7 @@ var designToDo_ui = ui;
     }
     customerMaintenance.contents.push('-');
     customerMaintenance.contents.push(new tgi.Command({
-      name: 'Save Invoice',
+      name: 'Save Order / Invoice',
       theme: 'success',
       icon: 'fa-check-circle',
       type: 'Procedure',
@@ -214,12 +229,12 @@ var designToDo_ui = ui;
             attribute.value = ''; //
             if (invoices.get('ServiceDate'))
               attribute.value += tgi.left('' + invoices.get('ServiceDate'), 16) + ':';
+            if (invoices.get('CustomerIssues'))
+              attribute.value += ' ' + invoices.get('CustomerIssues');
             if (invoices.get('TankPumped'))
               attribute.value += ' Tank Pumped';
             if (invoices.get('Comments'))
               attribute.value += ' ' + invoices.get('Comments');
-            else if (invoices.get('CustomerIssues'))
-              attribute.value += ' ' + invoices.get('CustomerIssues');
             attributes.push(attribute);
 
             invoiceButtons.push(new tgi.Command({
@@ -259,8 +274,8 @@ var designToDo_ui = ui;
   /**
    * force
    */
-  //setTimeout(function () {
-  //  customerCommand.execute(ui);
-  //}, 100);
+  setTimeout(function () {
+    customerCommand.execute(ui);
+  }, 100);
 
 }());

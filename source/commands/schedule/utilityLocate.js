@@ -66,11 +66,12 @@ var designToDo_ui = ui;
    * Render the list
    */
   function renderList() {
+    app.info('Locating please wait ...');
     var listView = new tgi.List(new LocateOrder());
     /**
      * Fetch each order where utility locate has not been done
      */
-    site.hostStore.getList(new tgi.List(new site.Invoice()), {UtilityLocate: false}, function (invoiceList, error) {
+    site.hostStore.getList(new tgi.List(new site.Invoice()), {UtilityLocate: false}, {id:1}, function (invoiceList, error) {
       if (error) {
         console.log('error loading invoice: ' + error);
       } else {

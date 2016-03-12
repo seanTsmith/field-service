@@ -3,8 +3,9 @@
  */
 
 var designToDo_ui = ui;
-site.ModelMaintenance = function (ModelConstructor) {
+site.ModelMaintenance = function (ModelConstructor, sortOrder) {
   var self = this;
+  this.sortOrder=sortOrder;
   this.ModelConstructor = ModelConstructor;
   this.model = new ModelConstructor();
   this.viewState = 'SEARCH';
@@ -139,7 +140,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
           }
         }
       };
-      site.hostStore.getList(list, self.searchObject, {Customer: 1}, function (list, error) {
+      site.hostStore.getList(list, self.searchObject, self.sortOrder, function (list, error) {
         if (typeof error != 'undefined') {
           self.contents.push('#### ' + e);
           console.log('' + e);

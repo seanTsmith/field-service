@@ -1,20 +1,10 @@
 TO DO
 ===
-+ Add admin / tech list
-+ Add fields to Invoice
-    + Price
-    + Tech 1
-    + Tech 2
-+ new bug create new order make tech invalid - save twice and all bools toggle!!! / or just new order save
-+ service date getting stored as string
-+ Fix 1969 service date when blanks (FIXED... TEST)    
-
-+ Utility Locate To Do
-- Schedule Days
-- Massage data to reflect correct state (if invoice number supplied then utility locate done)
 
 TO DO LATER
 ===
+- Add to Utility Locate "Mark Ref # Done" button
+- fix customers with spaces in front of name and blanks and dups
 - Weird thing where panels move
 - Set up users and admin attribute for things like delete
 - Call invoice Work Order if no invoice number
@@ -65,6 +55,28 @@ UBER BUG
       callback(list, Error(msg));
     }
   });
+
+
+DONE 3/12
+===
++ When saving invoice, check off uitlity locate if invoice number entered
++ add sort default to model maint
+
+
+DONE 3/11
+===
++ Add admin / tech list
++ Add fields to Invoice
+    + Price
+    + Tech 1
+    + Tech 2
++ new bug create new order make tech invalid - save twice and all bools toggle!!! / or just new order save
++ service date getting stored as string
++ Fix 1969 service date when blanks (FIXED... TEST)    
+
++ Utility Locate To Do
++ Schedule Days
++ Massage data to reflect correct state (if invoice number supplied then utility locate done)
 
 
 DONE BEFORE
