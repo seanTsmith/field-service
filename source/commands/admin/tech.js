@@ -18,6 +18,15 @@
   site.adminMenu.push(techCommand);
 
   /**
+   * no deletes for now
+   */
+  techMaintenance.onDelete(function (model, callback) {
+
+      callback(new Error('Techs cannot be deleted at this time.'));
+  });
+
+
+  /**
    * force
    */
   //setTimeout(function () {

@@ -12,9 +12,9 @@ var designToDo_ui = ui;
   var invoice;
   var isNewInvoice;
   var hasOpenInvoice = false;
+  var hasAnyActivity = false;
 
   customerPresentation.preRenderCallback = function (command, callback) {
-    console.log('fuck tit');
     site.customerMaintenance.preRenderCallback(command, callback);
   };
 
@@ -87,16 +87,24 @@ var designToDo_ui = ui;
   }
 
   /**
+   * When deleting check invoices for use
+   */
+  site.customerMaintenance.onDelete(function (model, callback) {
+    if (hasAnyActivity)
+      callback(new Error('Invoices or orders must be deleted first.'));
+    else
+      callback();
+  });
+
+  /**
    * Render custom view (invoice edit)
    */
   site.customerMaintenance.onCustomViewState(function (callback) {
 
     var primaryTech = new tgi.Attribute({name: 'Primary Tech', type: 'String(25)', quickPick: site.techList, validationRule: {isOneOf: site.techList}});
     var secondaryTech = new tgi.Attribute({name: 'Secondary Tech', type: 'String(25)', quickPick: site.techList, validationRule: {isOneOf: site.techList}});
-
     primaryTech.value = '(unassigned)';
     secondaryTech.value = '(unassigned)';
-
     var primaryTechID = invoice.get('PrimaryTechID');
     var secondaryTechID = invoice.get('secondaryTechID');
     for (var i = 0; i < site.techID.length; i++) {
@@ -104,11 +112,9 @@ var designToDo_ui = ui;
       if (techID == primaryTechID) {
         primaryTech.value = site.techList[i];
       }
-
       if (techID == secondaryTechID)
         secondaryTech.value = site.techList[i];
     }
-
 
     //invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
     site.customerCommand.presentationMode = 'Edit';
@@ -189,6 +195,27 @@ var designToDo_ui = ui;
         ]
       })
     }));
+    if (!isNewInvoice)
+      site.customerMaintenance.contents.push(new tgi.Command({
+        name: 'Delete',
+        theme: 'danger',
+        icon: 'fa-minus-circle',
+        type: 'Function',
+        contents: function () {
+          // site.safeDelete = function (name, callback) {}
+          site.safeDelete('invoice', function () {
+            site.hostStore.deleteModel(invoice, function (mod, err) {
+              if (err) {
+                app.err(err);
+              } else {
+                app.info('invoice deleted')
+              }
+            });
+            site.customerMaintenance.viewState = 'VIEW';
+            site.customerCommand.execute(designToDo_ui);
+          });
+        }
+      }));
     site.customerMaintenance.contents.push(new tgi.Command({
       name: 'Cancel',
       theme: 'default',
@@ -211,6 +238,7 @@ var designToDo_ui = ui;
    */
   site.customerMaintenance.onRenderAttributes(function (customer, callback) {
     hasOpenInvoice = false;
+    hasAnyActivity = false;
     invoiceButtons = [];
     site.hostStore.getList(new tgi.List(new site.Invoice()), {CustomerID: customer.get('id')}, {},
       function (invoices, error) {
@@ -220,6 +248,7 @@ var designToDo_ui = ui;
           var attributes = [];
           var gotMore = invoices.moveFirst();
           while (gotMore) {
+            hasAnyActivity = true;
             var invoiceLabel = 'Invoice #' + invoices.get('InvoiceNumber');
             if (!invoices.get('InvoiceNumber')) {
               invoiceLabel = 'OPEN ORDER';
@@ -260,6 +289,8 @@ var designToDo_ui = ui;
         contents: editInvoice
       }));
     }
+
+
     callback(invoiceButtons);
   });
   site.customerCommand = new tgi.Command({

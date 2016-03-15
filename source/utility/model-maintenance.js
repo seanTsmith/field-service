@@ -5,7 +5,7 @@
 var designToDo_ui = ui;
 site.ModelMaintenance = function (ModelConstructor, sortOrder) {
   var self = this;
-  this.sortOrder=sortOrder;
+  this.sortOrder = sortOrder;
   this.ModelConstructor = ModelConstructor;
   this.model = new ModelConstructor();
   this.viewState = 'SEARCH';
@@ -19,6 +19,10 @@ site.ModelMaintenance = function (ModelConstructor, sortOrder) {
     self.contents.push('UNKNOWN VIEW STATE ' + self.viewState);
     callback();
   });
+  this.onDelete(function (model, callback) {
+    callback(); // pass error if failed
+  });
+
 };
 site.ModelMaintenance.prototype.preRenderCallback = function (command, callback) {
   var self = this;
@@ -153,8 +157,8 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
             icon: 'fa-undo',
             type: 'Function',
             contents: function () {
-                self.viewState = 'SEARCH';
-                command.execute(designToDo_ui);
+              self.viewState = 'SEARCH';
+              command.execute(designToDo_ui);
             }
           }));
           self.contents.push(new tgi.Command({
@@ -305,7 +309,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
         theme: 'success',
         icon: 'fa-check-circle',
         type: 'Function',
-        contents: function() {
+        contents: function () {
           self.presentation.validate(function () {
             if (self.presentation.validationMessage) {
               app.warn('Please correct: ' + attributePresentation.validationMessage);
@@ -315,6 +319,37 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
           })
         }
       }));
+
+      if (self.modelID) {
+        self.contents.push(new tgi.Command({
+          name: 'Delete ' + self.model.modelType,
+          theme: 'danger',
+          icon: 'fa-minus-circle',
+          type: 'Function',
+          contents: function () {
+            console.log('suppo');
+            self._onDeleteCallback(self.editModel, function (error) {
+              if (error) {
+                app.ok('Unabled to delete ' + self.model.modelType + ': ' + error, function () {
+                })
+              } else {
+                site.safeDelete('customer', function () {
+                  site.hostStore.deleteModel(self.editModel, function (mod, err) {
+                    if (err) {
+                      app.err(err);
+                    } else {
+                      app.info(self.model.modelType + ' deleted');
+                      self.viewState = 'LIST';
+                      command.execute(designToDo_ui);
+                    }
+                  });
+                });
+              }
+            });
+          }
+        }));
+
+      }
 
       self.contents.push(new tgi.Command({
         name: 'Cancel',
@@ -365,4 +400,7 @@ site.ModelMaintenance.prototype.onRenderCommands = function (callback) {
 };
 site.ModelMaintenance.prototype.onCustomViewState = function (callback) {
   this._customViewState = callback;
+};
+site.ModelMaintenance.prototype.onDelete = function (callback) {
+  this._onDeleteCallback = callback;
 };
