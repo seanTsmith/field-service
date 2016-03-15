@@ -134,6 +134,7 @@ mongoStore.onConnect('http://localhost', function (store, err) {
 
 function fixIt() {
   var recno = 0;
+  var fixno = 0;
   mongoStore.getList(new tgi.List(new site.Invoice()), {}, function (invoiceList, error) {
     if (error) {
       console.log('error loading invoice: ' + error);
@@ -152,6 +153,7 @@ function fixIt() {
         console.log('on rec #' + recno);
       var fixIt = false;
       var InvoiceNumber = invoiceList.get('InvoiceNumber');
+      var UtilityReference = invoiceList.get('UtilityReference');
       var UtilityLocate = invoiceList.get('UtilityLocate');
       var Emergency = invoiceList.get('Emergency');
       var TankPumped = invoiceList.get('TankPumped');
@@ -172,18 +174,18 @@ function fixIt() {
       //  ' ServiceYear: ' + ServiceYear +
       //  ' ServiceMonth: ' + ServiceMonth);
 
-      if (ServiceYear < 2016 && ServiceMonth < 3) {
-        if (!UtilityLocate)
-          fixIt = true;
-      } else {
-        if (InvoiceNumber === null || InvoiceNumber === '') {
-          if (UtilityLocate)
-            fixIt = true;
-        } else {
-          if (!UtilityLocate)
-            fixIt = true;
-        }
-      }
+      //if (ServiceYear < 2016 && ServiceMonth < 3) {
+      //  if (!UtilityLocate)
+      //    fixIt = true;
+      //} else {
+      //  if (InvoiceNumber === null || InvoiceNumber === '') {
+      //    if (UtilityLocate)
+      //      fixIt = true;
+      //  } else {
+      //    if (!UtilityLocate)
+      //      fixIt = true;
+      //  }
+      //}
 
       if (typeof(UtilityLocate) !== "boolean")
         fixIt = true;
@@ -191,6 +193,10 @@ function fixIt() {
         fixIt = true;
       if (typeof(TankPumped) !== "boolean")
         fixIt = true;
+      if (typeof(UtilityReference) !== "string")
+        fixIt = true;
+
+
 
       if (fixIt)
         fixRow();
@@ -199,6 +205,7 @@ function fixIt() {
     }
 
     function fixRow() {
+      fixno++;
       var invoice = new site.Invoice();
 
       invoice.set('id', invoiceList.get('id'));
@@ -244,6 +251,8 @@ function fixIt() {
         }, 0);
       } else {
         console.log('processed records:  ' + recno);
+        console.log('fixed records:  ' + fixno);
+
         process.exit(1);
       }
     }

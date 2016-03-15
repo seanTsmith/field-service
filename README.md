@@ -1,13 +1,18 @@
 TO DO
 ===
+- deletes with warning 
+- Add to Utility Locate "Mark Ref # Done" button
+- rebuild site
+- fix data
 
 TO DO LATER
 ===
-- Add to Utility Locate "Mark Ref # Done" button
 - fix customers with spaces in front of name and blanks and dups
 - Weird thing where panels move
 - Set up users and admin attribute for things like delete
 - Call invoice Work Order if no invoice number
+- attributes hidden for View Edit Search List
+- review code for var module = {};
 
 FOR DATA CONVERT
 ===
@@ -113,7 +118,6 @@ LATER
 
 Call utility locate and provide:
     - address, city, county and cross street
-
 
 xxxx
 locate number reference -  
