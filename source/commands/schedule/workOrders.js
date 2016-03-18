@@ -5,10 +5,10 @@ var designToDo_ui = ui;
 
 (function () {
   var module = {};
-
-  console.log('who am i');
-
   module.viewState = 'LIST';
+  module.ServiceDate = new tgi.Attribute({name: 'ServiceDate', label: 'Service Date', type: 'Date'});
+  module.ServiceDate.value = new Date();
+
   var workOrderPresentation = new tgi.Presentation();
   workOrderPresentation.preRenderCallback = function (command, callback) {
     module.presentation = command.contents;
@@ -16,9 +16,13 @@ var designToDo_ui = ui;
     module.command = command;
     module.contents = [];
     switch (module.viewState) {
-      //case 'ORDER':
-      //  renderOrder();
-      //  break;
+      case 'FILTER':
+        try {
+          renderFilter();
+        } catch (e) {
+          app.err('renderFilter(' + e + ')')
+        }
+        break;
       case 'LIST':
         try {
           renderList();
@@ -40,6 +44,7 @@ var designToDo_ui = ui;
     icon: 'fa-truck',
     contents: workOrderPresentation
   });
+  workOrderCommand.presentationMode = 'Edit';
   site.scheduleMenu.push(workOrderCommand);
   /**
    * Model for our list view
@@ -51,17 +56,17 @@ var designToDo_ui = ui;
       args.attributes = [];
     }
     args.attributes.push(new tgi.Attribute({name: 'Techs', label: ' Tech', type: 'String'}));
-    args.attributes.push(new tgi.Attribute({name: 'Emergency', label: '*', type: 'Boolean'}));
-    args.attributes.push(new tgi.Attribute({name: 'ServiceDate', label: 'Date', type: 'Date'}));
+    args.attributes.push(new tgi.Attribute({name: 'ServiceDate', type: 'Date', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Date', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Customer', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'City', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Address', type: 'String'}));
+    args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Issues', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'CustomerID', type: 'ID', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "LocateOrder";
   };
   LocateOrder.prototype = Object.create(tgi.Model.prototype);
-
   /**
    * Callback after async ops done
    */
@@ -71,21 +76,127 @@ var designToDo_ui = ui;
   }
 
   /**
+   * Search Filter
+   */
+  function renderFilter() {
+
+    module.contents.push('Enter the date to show work orders for and press "Select Date" ' +
+      'or press "All Orders" to show all open work orders ready to be scheduled.');
+
+    module.contents.push('-');
+    module.contents.push(module.ServiceDate);
+    module.contents.push('-');
+    module.contents.push('>');
+    module.contents.push(new tgi.Command({
+      name: 'Select Date',
+      theme: 'default',
+      icon: 'fa-calendar',
+      type: 'Function',
+      contents: function () {
+        module.viewState = 'LIST';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    module.contents.push(new tgi.Command({
+      name: 'All Orders',
+      theme: 'default',
+      icon: 'fa-calendar-o',
+      type: 'Function',
+      contents: function () {
+        module.ServiceDate.value = null;
+        module.viewState = 'LIST';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    callbackDone();
+  }
+
+  /**
    * Render the list
    */
   function renderList() {
-    var listView = new tgi.List(new LocateOrder());
+
+    var daOrder = new LocateOrder();
+    if (module.ServiceDate.value)
+      daOrder.attribute('Date').hidden = '*';
+    else
+      daOrder.attribute('CustomerIssues').hidden = '*';
+    var listView = new tgi.List(daOrder);
+
+    module.contents.push(new tgi.Command({
+      name: 'Select Date',
+      theme: 'default',
+      icon: 'fa-calendar',
+      type: 'Function',
+      contents: function () {
+        module.viewState = 'FILTER';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    module.contents.push(new tgi.Command({
+      name: 'Refresh List',
+      theme: 'default',
+      icon: 'fa-refresh',
+      type: 'Function',
+      contents: function () {
+        module.viewState = 'LIST';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+
+    if (module.ServiceDate.value) {
+
+
+      var weekday = new Array(7);
+      weekday[0]=  "Sunday";
+      weekday[1] = "Monday";
+      weekday[2] = "Tuesday";
+      weekday[3] = "Wednesday";
+      weekday[4] = "Thursday";
+      weekday[5] = "Friday";
+      weekday[6] = "Saturday";
+
+      var dow = weekday[module.ServiceDate.value.getDay()];
+
+      module.contents.push('#### ' + dow + ' ' + tgi.left(module.ServiceDate.value.toISOString(), 10));
+    }
 
     /**
      * Fetch each order where utility locate has not been done
      */
     var daList = new tgi.List(new site.Invoice());
-    site.hostStore.getList(daList, {UtilityReference: '', InvoiceNumber: ''}, {ServiceDate: 1, id: 1}, function (invoiceList, error) {
+    site.hostStore.getList(daList, {InvoiceNumber: ''}, {ServiceDate: 1, id: 1}, function (invoiceList, error) {
       if (error) {
         console.log('error loading invoice: ' + error);
       } else {
         if (invoiceList.moveFirst()) {
           function populateRow() {
+            /**
+             * Make sure ready to schedule
+             */
+            var UtilityReference = invoiceList.get('UtilityReference') || '';
+
+            /**
+             * Check if date filter
+             */
+            if (module.ServiceDate.value) {
+              var filterDate = tgi.left(module.ServiceDate.value.toISOString(), 10);
+              var ServiceDate = invoiceList.get('ServiceDate');
+              if (ServiceDate)
+                ServiceDate = tgi.left(ServiceDate.toISOString(), 10);
+              if (!ServiceDate || ServiceDate != filterDate) {
+                nextRow();
+                return;
+              }
+            }
+
+            /**
+             * Filter jobs not ready to show
+             */
+            if (!invoiceList.get('Emergency') && !UtilityReference.length) {
+              nextRow();
+              return;
+            }
             /**
              * Get tech names
              */
@@ -110,7 +221,12 @@ var designToDo_ui = ui;
               listView.addItem(new LocateOrder());
               listView.set('id', invoiceList.get('id'));
               listView.set('CustomerID', invoiceList.get('CustomerID'));
-              listView.set('Emergency', invoiceList.get('Emergency'));
+              var icon = invoiceList.get('Emergency') ? '<i class="fa fa-support"></i> ' : '<i class="fa fa-calendar-check-o"></i> ';
+              var rawDate = invoiceList.get('ServiceDate');
+              var theDate = rawDate ? tgi.left(rawDate.toISOString(), 10) : '(not set)'; // ;
+              var CustomerIssues = invoiceList.get('CustomerIssues') || '';
+              listView.set('Date', icon + theDate);
+              listView.set('CustomerIssues', icon + CustomerIssues);
               listView.set('ServiceDate', invoiceList.get('ServiceDate'));
               if (techs)
                 listView.set('techs', techs);
@@ -121,19 +237,27 @@ var designToDo_ui = ui;
                 listView.set('City', customer.get('City'));
                 listView.set('Address', customer.get('Address1'));
               }
-              if (invoiceList.moveNext()) {
-                setTimeout(function () {
-                  populateRow();
-                }, 0);
-              } else {
-                //listView.sort({ServiceDate: 1, id: 1});
-                module.contents.push(listView);
-                callbackDone();
-              }
+              nextRow();
             });
           }
 
           populateRow();
+          function nextRow() {
+            if (invoiceList.moveNext()) {
+              setTimeout(function () {
+                populateRow();
+              }, 0);
+            } else {
+              //listView.sort({ServiceDate: 1, id: 1});
+              if (listView.moveFirst())
+                module.contents.push(listView);
+              else if (module.ServiceDate.value)
+                module.contents.push('No work orders to show for ' + tgi.left(module.ServiceDate.value.toISOString(), 10));
+              else
+                module.contents.push('No work orders to show.');
+              callbackDone();
+            }
+          }
         } else {
           module.contents.push('### No orders found that need utility locate');
           callbackDone();
@@ -147,35 +271,35 @@ var designToDo_ui = ui;
     listView.pickKludge = function (id) {
       module.orderID = null;
       var hasMore = listView.moveFirst();
-      while (hasMore  && !module.orderID) {
-        if (listView.get('id') ==  id)
+      while (hasMore && !module.orderID) {
+        if (listView.get('id') == id)
           module.orderID = id;
         else
           listView.moveNext();
       }
-
-      //var items = listView._items;
-      //for (var i = 0; i < items.length; i++) {
-      //  var item = items[i];
-      //  if (id == item[0]) {
-      //    module.orderID = id;
-      //  }
-      //}
       if (module.orderID) {
-        var choices = ['Assign primary tech', 'Load selected customer'];
-
+        var choices = [];
+        var choice1 = choices[choices.push('Assign primary tech') - 1];
+        var choice2 = choices[choices.push('Load selected customer') - 1];
+        var choice3 = choices[choices.push('Open address in Bing maps') - 1];
         app.choose('What would you like to do?', choices, function (choice) {
-          if (choice == choices[0]) {
-            app.choose('Assign primary tech', site.techList, function (choice) {
-              if (choice !== undefined)
-                setPrimaryTech(choice)
-            });
-          }
-          if (choice == choices[1]) {
-            site.customerMaintenance.modelID = listView.get('CustomerID');
-            site.customerMaintenance.internalRefresh = true;
-            site.customerMaintenance.viewState = 'VIEW';
-            site.customerCommand.execute(designToDo_ui);
+          switch (choice) {
+            case choice1:
+              app.choose('Assign primary tech', site.techList, function (choice) {
+                if (choice !== undefined)
+                  setPrimaryTech(choice)
+              });
+              break;
+            case choice2:
+              site.customerMaintenance.modelID = listView.get('CustomerID');
+              site.customerMaintenance.internalRefresh = true;
+              site.customerMaintenance.viewState = 'VIEW';
+              site.customerCommand.execute(designToDo_ui);
+              break;
+            case choice3:
+              site.Customer.Map(listView.get('CustomerID'));
+              break;
+            default:
           }
         });
       } else {
@@ -224,9 +348,8 @@ var designToDo_ui = ui;
 
   /**
    * force
-  // */
+   // */
   //setTimeout(function () {
   //  workOrderCommand.execute(ui);
   //}, 100);
-
 }());

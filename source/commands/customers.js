@@ -240,6 +240,15 @@ var designToDo_ui = ui;
     hasOpenInvoice = false;
     hasAnyActivity = false;
     invoiceButtons = [];
+    invoiceButtons.push(new tgi.Command({
+      name: 'Map',
+      bucket: customer.get('id'),
+      icon: 'fa-map',
+      type: 'Function',
+      contents: function () {
+        site.Customer.Map(customer.get('id'));
+      }
+    }));
     site.hostStore.getList(new tgi.List(new site.Invoice()), {CustomerID: customer.get('id')}, {},
       function (invoices, error) {
         if (error) {
@@ -289,8 +298,6 @@ var designToDo_ui = ui;
         contents: editInvoice
       }));
     }
-
-
     callback(invoiceButtons);
   });
   site.customerCommand = new tgi.Command({

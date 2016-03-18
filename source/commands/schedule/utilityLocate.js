@@ -183,6 +183,18 @@ var designToDo_ui = ui;
           })
         }
       }));
+
+      self.contents.push(new tgi.Command({
+        name: 'Map',
+        bucket: customer.get('id'),
+        icon: 'fa-map',
+        type: 'Function',
+        contents: function () {
+          site.Customer.Map(customer.get('id'));
+        }
+      }));
+
+
       finishUp();
     }
 
