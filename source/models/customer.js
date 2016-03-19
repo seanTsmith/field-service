@@ -167,7 +167,8 @@
         app.err('getModel error: ' + error);
       } else {
         app.info('Loading map, make sure popup not blocked...');
-        address = '' + customer.get('Address1') + ', '+ customer.get('City') + ', '+ customer.get('State') + ' ' + customer.get('zip');
+        var zip = customer.get('zip') ?  ' ' + customer.get('zip') : '';
+        address = '' + customer.get('Address1') + ', '+ customer.get('City') + ', '+ customer.get('State') + zip;
         //console.log('address: ' + address);
       }
       var url = 'http://www.bing.com/maps/default.aspx?where1=' + address;

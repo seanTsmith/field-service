@@ -61,6 +61,7 @@ var designToDo_ui = ui;
     args.attributes.push(new tgi.Attribute({name: 'Customer', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'City', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Address', type: 'String'}));
+    args.attributes.push(new tgi.Attribute({name: 'Phone', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Issues', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'CustomerID', type: 'ID', hidden: '*'}));
     tgi.Model.call(this, args);
@@ -145,27 +146,29 @@ var designToDo_ui = ui;
     }));
 
     if (module.ServiceDate.value) {
-
-
       var weekday = new Array(7);
-      weekday[0]=  "Sunday";
+      weekday[0] = "Sunday";
       weekday[1] = "Monday";
       weekday[2] = "Tuesday";
       weekday[3] = "Wednesday";
       weekday[4] = "Thursday";
       weekday[5] = "Friday";
       weekday[6] = "Saturday";
-
       var dow = weekday[module.ServiceDate.value.getDay()];
-
       module.contents.push('#### ' + dow + ' ' + tgi.left(module.ServiceDate.value.toISOString(), 10));
     }
 
     /**
-     * Fetch each order where utility locate has not been done
+     * Fetch each order with no invoice
      */
     var daList = new tgi.List(new site.Invoice());
-    site.hostStore.getList(daList, {InvoiceNumber: ''}, {ServiceDate: 1, id: 1}, function (invoiceList, error) {
+
+    // module.ServiceDate.value
+    var crit = {InvoiceNumber: ''};
+    //if (module.ServiceDate.value)
+    //  crit = {ServiceDate: module.ServiceDate.value}
+
+    site.hostStore.getList(daList, crit, {ServiceDate: 1, id: 1}, function (invoiceList, error) {
       if (error) {
         console.log('error loading invoice: ' + error);
       } else {
@@ -190,13 +193,13 @@ var designToDo_ui = ui;
               }
             }
 
-            /**
-             * Filter jobs not ready to show
-             */
-            if (!invoiceList.get('Emergency') && !UtilityReference.length) {
-              nextRow();
-              return;
-            }
+            ///**
+            // * Filter jobs not ready to show
+            // */
+            //if (!invoiceList.get('Emergency') && !UtilityReference.length) {
+            //  nextRow();
+            //  return;
+            //}
             /**
              * Get tech names
              */
@@ -225,6 +228,14 @@ var designToDo_ui = ui;
               var rawDate = invoiceList.get('ServiceDate');
               var theDate = rawDate ? tgi.left(rawDate.toISOString(), 10) : '(not set)'; // ;
               var CustomerIssues = invoiceList.get('CustomerIssues') || '';
+              var Phone = ''; // HomePhone
+              if (customer.get('HomePhone'))
+                Phone += (' Home ' + customer.get('HomePhone'));
+              if (customer.get('WorkPhone'))
+                Phone += (' Work ' + customer.get('WorkPhone'));
+              if (customer.get('CellPhone'))
+                Phone += (' Cell ' + customer.get('CellPhone'));
+              listView.set('Phone', Phone);
               listView.set('Date', icon + theDate);
               listView.set('CustomerIssues', icon + CustomerIssues);
               listView.set('ServiceDate', invoiceList.get('ServiceDate'));
@@ -349,7 +360,7 @@ var designToDo_ui = ui;
   /**
    * force
    // */
-  //setTimeout(function () {
-  //  workOrderCommand.execute(ui);
-  //}, 100);
+  setTimeout(function () {
+    workOrderCommand.execute(ui);
+  }, 100);
 }());

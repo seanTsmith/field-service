@@ -1,9 +1,15 @@
 TO DO
 ===
-- County Maint list
-- City Drop Down
-- map load: http://www.bing.com/maps/default.aspx?where1=4099%20Manorside%20Court,%20Snellville,%20GA
++ We def HAVE to have the phone nbr show on the work order screen
+- admin delete
+- use date to show on sched.: Noticed that EMER button has to be selected before it will show on schedule... Even if it's not an EMER
 
+
+- It would be a big help if there was a check off place on the sch page..for when the job has been done during the day for scheduling reasons...
+
++ County Maint list
++ City Drop Down
++ map load: http://www.bing.com/maps/default.aspx?where1=4099%20Manorside%20Court,%20Snellville,%20GA
 + deletes with warning 
 + Add to Utility Locate "Mark Ref # Done" button
 + rebuild site
