@@ -360,7 +360,7 @@ var designToDo_ui = ui;
   /**
    * force
    // */
-  setTimeout(function () {
-    workOrderCommand.execute(ui);
-  }, 100);
+  //setTimeout(function () {
+  //  workOrderCommand.execute(ui);
+  //}, 100);
 }());
