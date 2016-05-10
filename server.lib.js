@@ -2996,7 +2996,7 @@ Transport.setMessageHandler('GetList', function (messageContents, fn) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.16',
+    version: '0.0.22',
     MongoStore: MongoStore
   };
 };
@@ -3092,7 +3092,7 @@ MongoStore.prototype.onConnect = function (location, callback, options) {
         }
       } else {
         if (userName) {
-          console.log('authenticate(%s,%s,%s)',userName, password, JSON.stringify(authenticateOptions));
+          //console.log('authenticate(%s,%s,%s)',userName, password, JSON.stringify(authenticateOptions));
           store.mongoDatabase.authenticate(userName, password, authenticateOptions, function (err, res) {
             if (err) {
               callback(store, err);
@@ -3307,6 +3307,14 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
 //      console.log('prop = ' + prop);
       if (list.model.getAttributeType(prop) == 'ID')
         mongoFilter[prop] = MongoStore._connection.mongo.ObjectID.createFromHexString(filter[prop]);
+      else if (list.model.getAttributeType(prop) == 'Date' && filter[prop] != null) {
+        //console.log('new date code ...');
+        var start = new Date(filter[prop]);
+        var end = new Date(filter[prop]);
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+        mongoFilter[prop] = {$gte: start, $lt: end};
+      }
       else
         mongoFilter[prop] = filter[prop];
     }
@@ -3319,7 +3327,17 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
       return;
     }
     if (order) {
-      collection.find({query: mongoFilter, $orderby: order}, findcallback);
+      var newOrder = {};
+      for (var o in order) {
+        if (order.hasOwnProperty(o)) {
+          var oo = o;
+          if (o=='id')
+            oo = '_id';
+          newOrder[oo] = order[o];
+        }
+      }
+      //console.log('newOrder: ' + JSON.stringify(newOrder));
+      collection.find({query: mongoFilter, $orderby: newOrder}, findcallback);
     } else {
       collection.find(mongoFilter, findcallback);
     }

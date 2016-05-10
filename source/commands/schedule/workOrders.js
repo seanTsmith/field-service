@@ -82,7 +82,7 @@ var designToDo_ui = ui;
   function renderFilter() {
 
     module.contents.push('Enter the date to show work orders for and press "Select Date" ' +
-      'or press "All Orders" to show all open work orders ready to be scheduled.');
+      'or press "Unscheduled" to show all open work orders ready to be scheduled.');
 
     module.contents.push('-');
     module.contents.push(module.ServiceDate);
@@ -99,7 +99,7 @@ var designToDo_ui = ui;
       }
     }));
     module.contents.push(new tgi.Command({
-      name: 'All Orders',
+      name: 'Unscheduled',
       theme: 'default',
       icon: 'fa-calendar-o',
       type: 'Function',
@@ -162,11 +162,15 @@ var designToDo_ui = ui;
      * Fetch each order with no invoice
      */
     var daList = new tgi.List(new site.Invoice());
+    var crit = {ServiceDate: null, InvoiceNumber: ''};
+    if (module.ServiceDate.value) {
+      var critDate = module.ServiceDate.value;
+      critDate.setHours(0, 0, 0, 0);
+      crit = {ServiceDate: critDate};
+    }
 
-    // module.ServiceDate.value
-    var crit = {InvoiceNumber: ''};
-    //if (module.ServiceDate.value)
-    //  crit = {ServiceDate: module.ServiceDate.value}
+
+    console.log('crit:' + JSON.stringify(crit));
 
     site.hostStore.getList(daList, crit, {ServiceDate: 1, id: 1}, function (invoiceList, error) {
       if (error) {
@@ -179,27 +183,6 @@ var designToDo_ui = ui;
              */
             var UtilityReference = invoiceList.get('UtilityReference') || '';
 
-            /**
-             * Check if date filter
-             */
-            if (module.ServiceDate.value) {
-              var filterDate = tgi.left(module.ServiceDate.value.toISOString(), 10);
-              var ServiceDate = invoiceList.get('ServiceDate');
-              if (ServiceDate)
-                ServiceDate = tgi.left(ServiceDate.toISOString(), 10);
-              if (!ServiceDate || ServiceDate != filterDate) {
-                nextRow();
-                return;
-              }
-            }
-
-            ///**
-            // * Filter jobs not ready to show
-            // */
-            //if (!invoiceList.get('Emergency') && !UtilityReference.length) {
-            //  nextRow();
-            //  return;
-            //}
             /**
              * Get tech names
              */
@@ -229,18 +212,28 @@ var designToDo_ui = ui;
               var theDate = rawDate ? tgi.left(rawDate.toISOString(), 10) : '(not set)'; // ;
               var CustomerIssues = invoiceList.get('CustomerIssues') || '';
               var Phone = ''; // HomePhone
+              // var icon = invoiceList.get('Emergency') ? '<i class="fa fa-support"></i> ' : '<i class="fa fa-calendar-check-o"></i> ';
               if (customer.get('HomePhone'))
-                Phone += (' Home ' + customer.get('HomePhone'));
+                Phone += (' <i class="fa fa-home"></i> ' + customer.get('HomePhone'));
               if (customer.get('WorkPhone'))
-                Phone += (' Work ' + customer.get('WorkPhone'));
+                Phone += (' <i class="fa fa-building-o"></i> ' + customer.get('WorkPhone'));
               if (customer.get('CellPhone'))
-                Phone += (' Cell ' + customer.get('CellPhone'));
+                Phone += (' <i class="fa fa-mobile"></i> ' + customer.get('CellPhone'));
               listView.set('Phone', Phone);
               listView.set('Date', icon + theDate);
               listView.set('CustomerIssues', icon + CustomerIssues);
               listView.set('ServiceDate', invoiceList.get('ServiceDate'));
-              if (techs)
+              if (techs) {
+                var invoiceNumber = invoiceList.get('invoiceNumber') || '';
+                if (invoiceNumber.length == 0)
+                  techs = '<i class="fa fa-square-o"> ' + techs;
+                else if (invoiceNumber == '*')
+                  techs = '<i class="fa fa-check-square-o"> ' + techs;
+                else
+                  techs = '<i class="fa fa-file-text-o"> ' + techs;
                 listView.set('techs', techs);
+              }
+
               if (error) {
                 app.err('getModel error: ' + error);
               } else {
@@ -259,7 +252,6 @@ var designToDo_ui = ui;
                 populateRow();
               }, 0);
             } else {
-              //listView.sort({ServiceDate: 1, id: 1});
               if (listView.moveFirst())
                 module.contents.push(listView);
               else if (module.ServiceDate.value)
@@ -270,7 +262,10 @@ var designToDo_ui = ui;
             }
           }
         } else {
-          module.contents.push('### No orders found that need utility locate');
+          if (module.ServiceDate.value)
+            module.contents.push('No work orders to show for ' + tgi.left(module.ServiceDate.value.toISOString(), 10));
+          else
+            module.contents.push('No work orders to show.');
           callbackDone();
         }
       }
@@ -293,6 +288,7 @@ var designToDo_ui = ui;
         var choice1 = choices[choices.push('Assign primary tech') - 1];
         var choice2 = choices[choices.push('Load selected customer') - 1];
         var choice3 = choices[choices.push('Open address in Bing maps') - 1];
+        var choice4 = choices[choices.push('Mark as done (or unmark)') - 1];
         app.choose('What would you like to do?', choices, function (choice) {
           switch (choice) {
             case choice1:
@@ -310,6 +306,9 @@ var designToDo_ui = ui;
             case choice3:
               site.Customer.Map(listView.get('CustomerID'));
               break;
+            case choice4:
+              markAsDone();
+              break;
             default:
           }
         });
@@ -317,6 +316,49 @@ var designToDo_ui = ui;
         app.err('error locating order');
       }
     };
+    /**
+     * Mark as done
+     */
+    function markAsDone() {
+
+      /**
+       * Get invoice
+       */
+      var invoice = new site.Invoice();
+      invoice.set('id', module.orderID);
+      site.hostStore.getModel(invoice, function (model, error) {
+        if (error) {
+          app.err('invoice  getModel error: ' + error);
+          return;
+        }
+        var invoiceNumber = invoice.get('invoiceNumber') || '';
+        var q = 'Mark job done?';
+        var v = '*';
+        if (invoiceNumber.length) {
+          q = 'Mark job NOT DONE?';
+          v = '';
+          if (invoiceNumber != '*') {
+            app.info('Job already invoiced!');
+            return;
+          }
+        }
+
+        app.yesno(q, function (response) {
+          if (!response)
+            return;
+          invoice.set('invoiceNumber', v);
+          site.hostStore.putModel(invoice, function (model, error) {
+            if (error) {
+              app.err('Error saving invoice: ' + error);
+            } else {
+              module.command.execute(designToDo_ui);
+            }
+          });
+
+        })
+      });
+    }
+
     /**
      * Set primary tech by name
      */

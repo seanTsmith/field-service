@@ -1,28 +1,29 @@
 TO DO
 ===
-+ We def HAVE to have the phone nbr show on the work order screen
-- admin delete
-- use date to show on sched.: Noticed that EMER button has to be selected before it will show on schedule... Even if it's not an EMER
-
-
-- It would be a big help if there was a check off place on the sch page..for when the job has been done during the day for scheduling reasons...
-
-+ County Maint list
-+ City Drop Down
-+ map load: http://www.bing.com/maps/default.aspx?where1=4099%20Manorside%20Court,%20Snellville,%20GA
-+ deletes with warning 
-+ Add to Utility Locate "Mark Ref # Done" button
-+ rebuild site
-+ fix data
++ fix criteria to use date
++ It would be a big help if there was a check off place on the sch page..for when the job has been done during the day for scheduling reasons...
 
 TO DO LATER
 ===
+- admin delete
 - fix customers with spaces in front of name and blanks and dups
 - Weird thing where panels move
 - Set up users and admin attribute for things like delete
 - Call invoice Work Order if no invoice number
 - attributes hidden for View Edit Search List
 - review code for var module = {};
+- new go to edit with no ID and blank all shizzle
+- backup database automatically?
+- Multi-line notes
+- windows 10 / David's computer
+- password loaded from config
+- server needs to do something different if mongodb not loaded
+- customer view with null crashes
+- model loosing attributes when put getmodel or putmodel done (bug in lib)
+- invoice.attributes[2] refs are shit
+- invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
+- Update MongoDB and loggin fails - fix deprected (new is xxx.sort())
+- require at least one phone when entering new customer
 
 FOR DATA CONVERT
 ===
@@ -72,11 +73,22 @@ UBER BUG
   });
 
 
+Done 3/18
+===
++ use date to show on sched.: Noticed that EMER button has to be selected before it will show on schedule... Even if it's not an EMER
++ We def HAVE to have the phone nbr show on the work order screen
++ County Maint list
++ City Drop Down
++ map load: http://www.bing.com/maps/default.aspx?where1=4099%20Manorside%20Court,%20Snellville,%20GA
++ deletes with warning 
++ Add to Utility Locate "Mark Ref # Done" button
++ rebuild site
++ fix data
+
 DONE 3/12
 ===
 + When saving invoice, check off uitlity locate if invoice number entered
 + add sort default to model maint
-
 
 DONE 3/11
 ===
@@ -92,7 +104,6 @@ DONE 3/11
 + Utility Locate To Do
 + Schedule Days
 + Massage data to reflect correct state (if invoice number supplied then utility locate done)
-
 
 DONE BEFORE
 ===
@@ -110,22 +121,6 @@ DONE BEFORE
 - fields all limited in length by default clipping of attribute bug
 - change field service to bowen
 
-LATER
-===
-- new go to edit with no ID and blank all shizzle
-- backup database automatically?
-- Multi-line notes
-- windows 10 / David's computer
-- password loaded from config
-- server needs to do something different if mongodb not loaded
-- customer view with null crashes
-- model loosing attributes when put getmodel or putmodel done (bug in lib)
-- invoice.attributes[2] refs are shit
-- invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
-- Update MongoDB and loggin fails - fix deprected (new is xxx.sort())     
-
-
-
 Call utility locate and provide:
     - address, city, county and cross street
 
@@ -141,5 +136,3 @@ cross street ?
 - city
 - address
 - cross street
-
-
