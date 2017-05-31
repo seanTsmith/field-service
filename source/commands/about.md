@@ -1,3 +1,8 @@
+## Update (in progress)
+* fixed load of techs to assign list limit to top 20 with phones
+* added contact to customer view
+* added work order schedule
+
 ## Normal Procedures
 
 ### New Call

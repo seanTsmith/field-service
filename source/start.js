@@ -1,5 +1,5 @@
 /**---------------------------------------------------------------------------------------------------------------------
- * www.tgi.io/source/start.js
+ * field-service/source/start.js
  *
  * Final script starts app
  */
@@ -31,9 +31,14 @@
         console.log('error loading tech names: ' + error);
       } else {
         var gotMore = list.moveFirst();
+        var cnt = 0;
         while (gotMore) {
-          site.techList.push(list.get('name'));
-          site.techID.push(list.get('id'));
+          if (list.get('CellPhone') && list.get('CellPhone').length) {
+            if (cnt++ < 20) {
+              site.techList.push(list.get('name'));
+              site.techID.push(list.get('id'));
+            }
+          }
           gotMore = list.moveNext();
         }
       }

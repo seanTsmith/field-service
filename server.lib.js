@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.36',
+      version: '0.4.42',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -30,6 +30,7 @@ var TGI = {
       Text: Text,
       Transport: Transport,
       User: User,
+      View: View,
       Workspace: Workspace,
       inheritPrototype: inheritPrototype,
       getInvalidProperties: getInvalidProperties,
@@ -927,10 +928,17 @@ Interface.firstMatch = function (s, a) { // find first partial match with s in a
  * tgi-core/lib/tgi-core-list.source.js
  */
 // Constructor
-var List = function (model) {
+var List = function (source) {
   if (false === (this instanceof List)) throw new Error('new operator required');
-  if (false === (model instanceof Model)) throw new Error('argument required: model');
-  this.model = model; // todo make unit test for this
+  if (source instanceof Model) {
+    this.model = source;
+  } else if (source instanceof View) {
+    this.view = source;
+    this.model = this.view.primaryModel;
+  } else {
+    throw new Error('argument required: model');
+  }
+  this.attributes = source.attributes;
   this._items = [];
   this._itemIndex = -1;
 };
@@ -944,9 +952,21 @@ List.prototype.clear = function () {
 };
 List.prototype.get = function (attribute) {
   if (this._items.length < 1) throw new Error('list is empty');
-  for (var i = 0; i < this.model.attributes.length; i++) {
-    if (this.model.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
-      if (this.model.attributes[i].type == 'Date' && !(this._items[this._itemIndex][i] instanceof Date)) {
+  for (var i = 0; i < this.attributes.length; i++) {
+    var curName = this.attributes[i].name.toUpperCase();
+    var wantedName = attribute.toUpperCase();
+    var splitName = wantedName.split('.');
+    //console.log('curName : ' + curName);
+    //console.log('wantedName : ' + wantedName + ' size ' + splitName.length);
+    var matches = (curName == wantedName);
+    if (splitName.length == 2) {
+      wantedName = splitName[1];
+      var wantedModel = splitName[0];
+      var curModel = this.attributes[i].model.modelType.toUpperCase();
+      matches = (curName == wantedName) && (wantedModel==curModel);
+    }
+    if (matches) {
+      if (this.attributes[i].type == 'Date' && !(this._items[this._itemIndex][i] instanceof Date)) {
         if (this._items[this._itemIndex][i] === null || this._items[this._itemIndex][i] === undefined)
           return null;
         else
@@ -959,8 +979,21 @@ List.prototype.get = function (attribute) {
 };
 List.prototype.set = function (attribute, value) {
   if (this._items.length < 1) throw new Error('list is empty');
-  for (var i = 0; i < this.model.attributes.length; i++) {
-    if (this.model.attributes[i].name.toUpperCase() == attribute.toUpperCase()) {
+  for (var i = 0; i < this.attributes.length; i++) {
+    var curName = this.attributes[i].name.toUpperCase();
+    var wantedName = attribute.toUpperCase();
+    var splitName = wantedName.split('.');
+    //console.log('curName : ' + curName);
+    //console.log('wantedName : ' + wantedName + ' size ' + splitName.length);
+    var matches = (curName == wantedName);
+    if (splitName.length == 2) {
+      wantedName = splitName[1];
+      var wantedModel = splitName[0];
+      var curModel = this.attributes[i].model.modelType.toUpperCase();
+      matches = (curName == wantedName) && (wantedModel==curModel);
+    }
+    if (matches) {
+
       this._items[this._itemIndex][i] = value;
       return;
     }
@@ -975,7 +1008,7 @@ List.prototype.addItem = function (item) {
       values.push(item.attributes[i].value);
     }
   } else {
-    for (i in this.model.attributes) {
+    for (i in this.attributes) {
       values.push(undefined);
     }
   }
@@ -1028,7 +1061,7 @@ List.prototype.sort = function (key) {
   }
   if (!keyvalue) throw new Error('sort order required');
   var ascendingSort = (key[keyvalue] == 1);
-  while (i < this.model.attributes.length && this.model.attributes[i].name != keyvalue) i++;
+  while (i < this.attributes.length && this.attributes[i].name != keyvalue) i++;
   this._items.sort(function (a, b) {
     if (ascendingSort) {
       if (a[i] < b[i])
@@ -1046,6 +1079,51 @@ List.prototype.sort = function (key) {
 };
 
 /**---------------------------------------------------------------------------------------------------------------------
+ * tgi-core/lib/core/tgi-core-message.source.js
+ */
+/**
+ * Constructor
+ */
+function Message(type, contents) {
+  if (false === (this instanceof Message)) throw new Error('new operator required');
+  if ('undefined' == typeof type) throw new Error('message type required');
+  if (!contains(Message.getTypes(), type)) throw new Error('Invalid message type: ' + type);
+  this.type = type;
+  this.contents = contents;
+}
+/**
+ * Methods
+ */
+Message.prototype.toString = function () {
+  switch (this.type) {
+    case 'Null':
+      return this.type + ' Message';
+    default:
+      return this.type + ' Message: ' + this.contents;
+  }
+};
+/**
+ * Simple functions
+ */
+Message.getTypes = function () {
+  return [
+    'Null',
+    'Connected',
+    'Error',
+    'Sent',
+    'Ping',
+    'PutModel',
+    'PutModelAck',
+    'GetModel',
+    'GetModelAck',
+    'DeleteModel',
+    'DeleteModelAck',
+    'GetList',
+    'GetListAck'
+  ].slice(0); // copy array
+};
+
+/**---------------------------------------------------------------------------------------------------------------------
  * tgi-core/lib/tgi-core-model.source.js
  */
 /**
@@ -1054,16 +1132,16 @@ List.prototype.sort = function (key) {
 var Model = function (args) {
   var i;
   if (false === (this instanceof Model)) throw new Error('new operator required');
-  this.modelType = "Model";
   this.attributes = [new Attribute('id', 'ID')];
   args = args || {};
+  this.modelType = args.modelType || "Model";
   if (args.attributes) {
     for (i in args.attributes) {
       if (args.attributes.hasOwnProperty(i))
         this.attributes.push(args.attributes[i]);
     }
   }
-  var unusedProperties = getInvalidProperties(args, ['attributes']);
+  var unusedProperties = getInvalidProperties(args, ['modelType', 'attributes']);
   var errorList = this.getObjectStateErrors(); // before leaving make sure valid Model
   for (i = 0; i < unusedProperties.length; i++) errorList.push('invalid property: ' + unusedProperties[i]);
   if (errorList.length > 1) throw new Error('error creating Model: multiple errors');
@@ -1071,6 +1149,9 @@ var Model = function (args) {
   // Validations done
   this._eventListeners = [];
   this._errorConditions = {};
+  //for (i = 0; i < this.attributes.length; i++) {
+  //  this.attributes[i].model = this;
+  //}
 };
 Model._ModelConstructor = {};
 /**
@@ -1239,51 +1320,6 @@ Model.prototype.clearError = function (condition) {
   delete this._errorConditions[condition];
 };
 /**---------------------------------------------------------------------------------------------------------------------
- * tgi-core/lib/core/tgi-core-message.source.js
- */
-/**
- * Constructor
- */
-function Message(type, contents) {
-  if (false === (this instanceof Message)) throw new Error('new operator required');
-  if ('undefined' == typeof type) throw new Error('message type required');
-  if (!contains(Message.getTypes(), type)) throw new Error('Invalid message type: ' + type);
-  this.type = type;
-  this.contents = contents;
-}
-/**
- * Methods
- */
-Message.prototype.toString = function () {
-  switch (this.type) {
-    case 'Null':
-      return this.type + ' Message';
-    default:
-      return this.type + ' Message: ' + this.contents;
-  }
-};
-/**
- * Simple functions
- */
-Message.getTypes = function () {
-  return [
-    'Null',
-    'Connected',
-    'Error',
-    'Sent',
-    'Ping',
-    'PutModel',
-    'PutModelAck',
-    'GetModel',
-    'GetModelAck',
-    'DeleteModel',
-    'DeleteModelAck',
-    'GetList',
-    'GetListAck'
-  ].slice(0); // copy array
-};
-
-/**---------------------------------------------------------------------------------------------------------------------
  * tgi-core/lib/core/tgi-core-procedure.source.js
  */
 /**
@@ -1424,7 +1460,7 @@ Store.prototype.toString = function () {
   if (this.name == 'a ' + this.storeType) {
     return this.name;
   } else {
-    return this.storeType + ': ' +this.name;
+    return this.storeType + ': ' + this.name;
   }
 };
 Store.prototype.getServices = function () {
@@ -1447,6 +1483,103 @@ Store.prototype.deleteModel = function () {
 Store.prototype.getList = function () {
   throw new Error('Store does not provide getList');
 };
+Store.prototype.getViewList = function (viewList, filter, arg3, arg4) {
+  var store = this;
+  var callback, order, i;
+  if (typeof(arg4) == 'function') {
+    callback = arg4;
+    order = arg3;
+  } else {
+    callback = arg3;
+  }
+  if (!(viewList instanceof List)) throw new Error('argument must be a List');
+  if (!viewList.view) throw new Error('List is Model type use getList');
+  if (!(filter instanceof Object)) throw new Error('filter argument must be Object');
+  if (typeof callback != "function") throw new Error('callback required');
+
+  /**
+   * use getList to populate initial rows
+   */
+  var proxyList = new List(viewList.model);
+  if (order)
+    this.getList(proxyList, filter, order, gotProxyList);
+  else
+    this.getList(proxyList, filter, gotProxyList);
+
+  /**
+   * Process proxy list and populate list
+   */
+  function gotProxyList(list, error) {
+    /**
+     * clear target list and make sure no errors
+     */
+    viewList.clear();
+    if (typeof error != 'undefined') {
+      callback(viewList, error);
+      return;
+    }
+    /**
+     * Move through each row
+     */
+    var moreRows = proxyList.moveFirst();
+    var relatedModelNames = [];
+    processRow();
+
+    /**
+     * Process Row
+     */
+    function processRow() {
+      if (!moreRows) { // Are we done?
+        callback(viewList);
+        return;
+      }
+      viewList.addItem();
+
+      // Populate from primary row
+      for (i = 0; i < viewList.attributes.length; i++) {
+        var col = viewList.attributes[i];
+        if (col.model == viewList.model) {
+          viewList.set(col.name, proxyList.get(col.name));
+        }
+      }
+      relatedModelNames = [];
+      for (var relatedModel in viewList.view.relatedModels)
+        if (viewList.view.relatedModels.hasOwnProperty(relatedModel))
+          relatedModelNames.push(relatedModel);
+      getRelatedModel();
+    }
+
+    function getRelatedModel() {
+      if (!relatedModelNames.length) {
+        moreRows = proxyList.moveNext();
+        processRow();
+        return;
+      }
+      //console.log('*** GETTING relatedModelNames ***');
+
+      var foreignAttribute = relatedModelNames.shift();
+      var relatedModel = viewList.view.relatedModels[foreignAttribute];
+      var foreignID = proxyList.get(relatedModel.id.name);
+      relatedModel.model.set('id', foreignID);
+      store.getModel(relatedModel.model, function (model, error) {
+        if (typeof error != 'undefined') {
+          callback(error);
+          return;
+        }
+        // Populate from primary row
+        for (var i = 0; i < viewList.attributes.length; i++) {
+          var col = viewList.attributes[i];
+          if (col.model == model) {
+            //console.log('Setting col.name ' + col.name + ' ' + model.get(col.name));
+            viewList.set(model.modelType + '.' + col.name, model.get(col.name));
+          }
+        }
+        getRelatedModel();
+      });
+    }
+  }
+};
+
 
 /**---------------------------------------------------------------------------------------------------------------------
  * tgi-core/lib/core/tgi-core-text.source.js
@@ -1618,6 +1751,58 @@ Transport.prototype.close = function () {
   if (!this.connected)
     throw new Error('not connected');
   this.socket.disconnect();
+};
+
+/**---------------------------------------------------------------------------------------------------------------------
+ * tgi-core/lib/core/tgi-core-view.source.js
+ */
+/**
+ * Constructor
+ */
+function View(primaryModel, relatedModels, attributes) {
+  if (false === (this instanceof View)) throw new Error('new operator required');
+  if (!(primaryModel instanceof Model)) throw new Error('argument must be a Model');
+  if (typeof relatedModels != 'object') throw new Error('object expected');
+  if (!(attributes instanceof Array)) throw new Error('array of attributes expected');
+  this.primaryModel = primaryModel;
+  this.relatedModels = relatedModels;
+  this.attributes = attributes;
+  var id = new Attribute('id', 'ID');
+  id.model = primaryModel;
+  this.attributes.unshift(id);
+
+  /**
+   * Make sure relatedModels valid
+   */
+  for (var relatedModel in relatedModels) {
+    if (relatedModels.hasOwnProperty(relatedModel)) {
+      var obj = relatedModels[relatedModel];
+      //console.log('relatedModel ' + relatedModel);
+      //console.log('obj ' + JSON.stringify(obj));
+      if (typeof obj != 'object') throw new Error('relatedModel key values expect object');
+      if (obj.id === undefined) throw new Error('relatedModel key values expect object with id key');
+      if (obj.model === undefined) throw new Error('relatedModel key values expect object with model key');
+      if (!(obj.id instanceof Attribute)) throw new Error('relatedModel id must be a Attribute');
+      if (!(obj.model instanceof Model)) throw new Error('relatedModel model must be a Model');
+    }
+  }
+  /**
+   * Check attributes
+   */
+  for (var i = 0; i < attributes.length; i++) {
+    var attribute = attributes[i];
+    if (!(attribute instanceof Attribute)) throw new Error('attribute array must contain Attributes');
+    if (!(attribute.model instanceof Model)) {
+      throw new Error('attribute array must contain Attributes with model references');
+    }
+
+  }
+}
+/**
+ * Methods
+ */
+View.prototype.toString = function () {
+  return this.primaryModel + ' View';
 };
 
 /**---------------------------------------------------------------------------------------------------------------------
@@ -2644,6 +2829,7 @@ MemoryStore.prototype.getList = function (list, filter, arg3, arg4) {
     callback = arg3;
   }
   if (!(list instanceof List)) throw new Error('argument must be a List');
+  if (list.view) throw new Error('List is View type use getViewList');
   if (!(filter instanceof Object)) throw new Error('filter argument must be Object');
   if (typeof callback != "function") throw new Error('callback required');
   // Find model in memorystore, error out if can't find

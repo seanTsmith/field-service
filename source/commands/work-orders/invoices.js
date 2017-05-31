@@ -31,7 +31,8 @@
     icon: 'fa-file-text',
     contents: invoicePresentation
   });
-  site.navContents.push(invoiceCommand);
+  site.workOrderMenu.push(invoiceCommand);
+  // site.navContents.push(invoiceCommand);
 
   /**
    * force

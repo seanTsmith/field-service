@@ -7,13 +7,13 @@
     return;
   }
 
-  var scheduleCommand = new tgi.Command({
-    name: 'Schedule',
+  var workOrderCommand = new tgi.Command({
+    name: 'Work Orders',
     type: 'Menu',
     theme: 'warning',
     icon: 'fa-file-text',
-    contents: site.scheduleMenu
+    contents: site.workOrderMenu
   });
-  site.navContents.push(scheduleCommand);
+  site.navContents.push(workOrderCommand);
 
 }());

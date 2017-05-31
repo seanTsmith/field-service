@@ -1,5 +1,5 @@
 /**---------------------------------------------------------------------------------------------------------------------
- * www.tgi.io/source/main.js
+ * field-service/source/init.js
  *
  * Initial script for app
  */
@@ -16,7 +16,7 @@ site.navContents = [];
 site.toolsMenu = [];
 site.modelsMenu = [];
 site.adminMenu = ['Administrative Functions','-'];
-site.scheduleMenu = ['Scheduling Functions','-'];
+site.workOrderMenu = ['Work Orders','-'];
 
 
 /**

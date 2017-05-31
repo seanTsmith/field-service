@@ -32,7 +32,7 @@ var designToDo_ui = ui;
     icon: 'fa-warning',
     contents: utilityLocatePresentation
   });
-  site.scheduleMenu.push(utilityLocateCommand);
+  site.workOrderMenu.push(utilityLocateCommand);
 
   /**
    * Model for our list view

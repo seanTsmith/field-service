@@ -1,10 +1,23 @@
 TO DO
 ===
+- Add invoice search by date and ticket
+
+- Add company group check box 
+- Make company group check off in customer search
+- Make new customer add based on template
+- Work Order printable
+- Source Report
++ Show contact info in search
++ Att invoice pump 1000 / 1500 to customer
+
+DONE EARLIER
+===
 + fix criteria to use date
 + It would be a big help if there was a check off place on the sch page..for when the job has been done during the day for scheduling reasons...
 
-TO DO LATER
+TO DO LATER (PUNTED)
 ===
+- can't assign tech reached limit
 - admin delete
 - fix customers with spaces in front of name and blanks and dups
 - Weird thing where panels move
@@ -22,7 +35,7 @@ TO DO LATER
 - model loosing attributes when put getmodel or putmodel done (bug in lib)
 - invoice.attributes[2] refs are shit
 - invoice.set('ServiceDate', new Date(invoice.get('ServiceDate'))); // todo fix
-- Update MongoDB and loggin fails - fix deprected (new is xxx.sort())
+- Update MongoDB and login fails - fix deprecated (new is xxx.sort())
 - require at least one phone when entering new customer
 
 FOR DATA CONVERT
@@ -47,9 +60,6 @@ rhc scp bowen -n superseptic download ./ app-root/repo/dump.zip
 
 Restore and Run the Database
 ---
-    cd tmp
-    mkdir bowenMongo
-    mongod -dbpath bowenMongo
 
 - unzip dump.zip
 - remove admin folder

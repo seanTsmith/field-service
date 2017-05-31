@@ -38,14 +38,15 @@ var designToDo_ui = ui;
     }
   };
   var workOrderCommand = new tgi.Command({
-    name: 'Work Orders',
+    name: 'Schedule',
     theme: 'warning',
     type: 'Presentation',
     icon: 'fa-truck',
     contents: workOrderPresentation
   });
   workOrderCommand.presentationMode = 'Edit';
-  site.scheduleMenu.push(workOrderCommand);
+  site.workOrderMenu.push(workOrderCommand);
+
   /**
    * Model for our list view
    */
@@ -59,6 +60,7 @@ var designToDo_ui = ui;
     args.attributes.push(new tgi.Attribute({name: 'ServiceDate', type: 'Date', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'Date', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Customer', type: 'String'}));
+    args.attributes.push(new tgi.Attribute({name: 'Contact', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'City', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Address', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Phone', type: 'String'}));
@@ -125,12 +127,34 @@ var designToDo_ui = ui;
     var listView = new tgi.List(daOrder);
 
     module.contents.push(new tgi.Command({
-      name: 'Select Date',
+      name: 'Prev Day',
+      theme: 'default',
+      icon: 'fa-arrow-left',
+      type: 'Function',
+      contents: function () {
+        module.ServiceDate.value = moment(module.ServiceDate.value).subtract(1, 'days').toDate();
+        module.viewState = 'LIST';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    module.contents.push(new tgi.Command({
+      name: 'Specific Day',
       theme: 'default',
       icon: 'fa-calendar',
       type: 'Function',
       contents: function () {
         module.viewState = 'FILTER';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    module.contents.push(new tgi.Command({
+      name: 'Next Day',
+      theme: 'default',
+      icon: 'fa-arrow-right',
+      type: 'Function',
+      contents: function () {
+        module.ServiceDate.value = moment(module.ServiceDate.value).add(1, 'days').toDate();
+        module.viewState = 'LIST';
         workOrderCommand.execute(designToDo_ui);
       }
     }));
@@ -238,6 +262,7 @@ var designToDo_ui = ui;
                 app.err('getModel error: ' + error);
               } else {
                 listView.set('Customer', customer.get('Customer'));
+                listView.set('Contact', customer.get('Contact'));
                 listView.set('City', customer.get('City'));
                 listView.set('Address', customer.get('Address1'));
               }
@@ -402,7 +427,7 @@ var designToDo_ui = ui;
   /**
    * force
    // */
-  //setTimeout(function () {
-  //  workOrderCommand.execute(ui);
-  //}, 100);
+  setTimeout(function () {
+   workOrderCommand.execute(ui);
+  }, 100);
 }());

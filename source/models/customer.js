@@ -137,7 +137,7 @@
     args.attributes.push(new tgi.Attribute({name: 'Zip', type: 'String(10)', placeHolder: '#####-####', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'County', type: 'String(25)', quickPick: site.countySource, hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'CrossStreet', label: 'Cross Street', type: 'String(50)', placeHolder: 'nearest intersecting street to address', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'Contact', type: 'String(50)', placeHolder: '(any additional contact info)', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'Contact', type: 'String(50)', placeHolder: '(any additional contact info)'}));
     args.attributes.push(new tgi.Attribute({name: 'HomePhone', label: 'Home Phone', type: 'String(25)', placeHolder: '###-###-####', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'WorkPhone', label: 'Work Phone', type: 'String(25)', placeHolder: '###-###-####', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'CellPhone', label: 'Cell Phone', type: 'String(25)', placeHolder: '###-###-####', hidden: '*'}));

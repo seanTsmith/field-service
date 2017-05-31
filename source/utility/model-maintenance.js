@@ -1,5 +1,5 @@
 /**---------------------------------------------------------------------------------------------------------------------
- * www.tgi.io/source/utility/model-maintenance.js
+ * field-service/source/utility/model-maintenance.js
  */
 
 var designToDo_ui = ui;
@@ -217,7 +217,7 @@ site.ModelMaintenance.prototype.preRenderCallback = function (command, callback)
      * Model is ready to be rendered
      */
     function renderModelView() {
-      console.log('renderModelView here');
+      // console.log('renderModelView here');
       for (var i = 1; i < self.viewModel.attributes.length; i++) { // copy all attribs except id
         //console.log('self.model.attributes[i] ' + self.viewModel.attributes[i]);
         if (self.viewModel.attributes[i].value)

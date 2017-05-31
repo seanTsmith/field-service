@@ -1,5 +1,5 @@
 /**---------------------------------------------------------------------------------------------------------------------
- * www.tgi.io/source/utility/load-panel.js
+ * field-service/source/utility/load-panel.js
  */
 
 site.loadPanel = function (cmd, doc, callback) {

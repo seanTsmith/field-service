@@ -20,7 +20,8 @@
     args.attributes.push(new tgi.Attribute({name: 'SecondaryTechID', label: 'Secondary Tech', type: 'ID', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'InvoiceNumber', label: 'Invoice #', type: 'String(8)'}));
     args.attributes.push(new tgi.Attribute({name: 'InvoiceAmount', label: 'Amount $', type: 'Number', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'TankPumped', label: 'Tank Pumped', type: 'Boolean', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'TankPumped', label: 'Pump 1000 gal', type: 'Boolean', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'TankPumped1500', label: 'Pump 1500 gal', type: 'Boolean', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'Comments', label: 'Tech Notes', type: 'String(255)', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "Invoice";
