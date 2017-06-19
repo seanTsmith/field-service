@@ -4,6 +4,10 @@
 var designToDo_ui = ui;
 
 (function () {
+  if (!site.loggedIn) {
+    return;
+  }
+
   var module = {};
   module.viewState = 'LIST';
   module.ServiceDate = new tgi.Attribute({name: 'ServiceDate', label: 'Service Date', type: 'Date'});
