@@ -1,5 +1,5 @@
 /**---------------------------------------------------------------------------------------------------------------------
- * field-service/source/commands/schedule/workOrders.js
+ * field-service/source/commands/work-orders/schedule.js
  */
 var designToDo_ui = ui;
 
@@ -7,6 +7,7 @@ var designToDo_ui = ui;
   var module = {};
   module.viewState = 'LIST';
   module.ServiceDate = new tgi.Attribute({name: 'ServiceDate', label: 'Service Date', type: 'Date'});
+  module.InvoiceNumber = new tgi.Attribute({name: 'InvoiceNumber', label: 'InvoiceNumber', type: 'String'});
   module.ServiceDate.value = new Date();
 
   var workOrderPresentation = new tgi.Presentation();
@@ -16,11 +17,18 @@ var designToDo_ui = ui;
     module.command = command;
     module.contents = [];
     switch (module.viewState) {
-      case 'FILTER':
+      case 'DATESEARCH':
         try {
-          renderFilter();
+          renderDateSearch();
         } catch (e) {
-          app.err('renderFilter(' + e + ')')
+          app.err('renderDateSearch(' + e + ')')
+        }
+        break;
+      case 'INVOICESEARCH':
+        try {
+          renderInvoiceSearch();
+        } catch (e) {
+          app.err('renderInvoiceSearch(' + e + ')')
         }
         break;
       case 'LIST':
@@ -38,14 +46,15 @@ var designToDo_ui = ui;
     }
   };
   var workOrderCommand = new tgi.Command({
-    name: 'Schedule',
+    name: 'Orders',
     theme: 'warning',
     type: 'Presentation',
     icon: 'fa-truck',
     contents: workOrderPresentation
   });
   workOrderCommand.presentationMode = 'Edit';
-  site.workOrderMenu.push(workOrderCommand);
+  // site.workOrderMenu.push(workOrderCommand);
+  site.navContents.push(workOrderCommand);
 
   /**
    * Model for our list view
@@ -64,7 +73,7 @@ var designToDo_ui = ui;
     args.attributes.push(new tgi.Attribute({name: 'City', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Address', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Phone', type: 'String'}));
-    args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Issues', type: 'String'}));
+    args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Notes', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'CustomerID', type: 'ID', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "LocateOrder";
@@ -79,10 +88,10 @@ var designToDo_ui = ui;
   }
 
   /**
-   * Search Filter
+   * Date Search
    */
-  function renderFilter() {
-
+  function renderDateSearch() {
+    module.InvoiceNumber.value = '';
     module.contents.push('Enter the date to show work orders for and press "Select Date" ' +
       'or press "Unscheduled" to show all open work orders ready to be scheduled.');
 
@@ -115,6 +124,42 @@ var designToDo_ui = ui;
   }
 
   /**
+   * Invoice Search
+   */
+  function renderInvoiceSearch() {
+
+    module.contents.push('Enter the invoice number to search for.');
+    module.contents.push('-');
+    module.InvoiceNumber.value = '';
+    module.contents.push(module.InvoiceNumber);
+    module.contents.push('-');
+    module.contents.push('>');
+    module.contents.push(new tgi.Command({
+      name: 'Find Invoice',
+      theme: 'default',
+      icon: 'fa-search',
+      type: 'Function',
+      contents: function () {
+        module.viewState = 'LIST';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    module.contents.push(new tgi.Command({
+      name: 'Cancel',
+      theme: 'default',
+      icon: 'fa-undo',
+      type: 'Function',
+      contents: function () {
+        module.InvoiceNumber.value = '';
+        // module.ServiceDate.value = null;
+        module.viewState = 'LIST';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    callbackDone();
+  }
+
+  /**
    * Render the list
    */
   function renderList() {
@@ -132,18 +177,20 @@ var designToDo_ui = ui;
       icon: 'fa-arrow-left',
       type: 'Function',
       contents: function () {
+        module.InvoiceNumber.value = '';
         module.ServiceDate.value = moment(module.ServiceDate.value).subtract(1, 'days').toDate();
         module.viewState = 'LIST';
         workOrderCommand.execute(designToDo_ui);
       }
     }));
     module.contents.push(new tgi.Command({
-      name: 'Specific Day',
+      name: 'Date',
       theme: 'default',
       icon: 'fa-calendar',
       type: 'Function',
       contents: function () {
-        module.viewState = 'FILTER';
+        module.InvoiceNumber.value = '';
+        module.viewState = 'DATESEARCH';
         workOrderCommand.execute(designToDo_ui);
       }
     }));
@@ -153,13 +200,24 @@ var designToDo_ui = ui;
       icon: 'fa-arrow-right',
       type: 'Function',
       contents: function () {
+        module.InvoiceNumber.value = '';
         module.ServiceDate.value = moment(module.ServiceDate.value).add(1, 'days').toDate();
         module.viewState = 'LIST';
         workOrderCommand.execute(designToDo_ui);
       }
     }));
     module.contents.push(new tgi.Command({
-      name: 'Refresh List',
+      name: 'Invoice #',
+      theme: 'default',
+      icon: 'fa-search',
+      type: 'Function',
+      contents: function () {
+        module.viewState = 'INVOICESEARCH';
+        workOrderCommand.execute(designToDo_ui);
+      }
+    }));
+    module.contents.push(new tgi.Command({
+      name: 'Refresh',
       theme: 'default',
       icon: 'fa-refresh',
       type: 'Function',
@@ -191,6 +249,12 @@ var designToDo_ui = ui;
       var critDate = module.ServiceDate.value;
       critDate.setHours(0, 0, 0, 0);
       crit = {ServiceDate: critDate};
+    }
+
+    //
+
+    if (module.InvoiceNumber.value) {
+      crit = {InvoiceNumber: module.InvoiceNumber.value};
     }
 
 
@@ -236,7 +300,8 @@ var designToDo_ui = ui;
               var theDate = rawDate ? tgi.left(rawDate.toISOString(), 10) : '(not set)'; // ;
               var CustomerIssues = invoiceList.get('CustomerIssues') || '';
               var Phone = ''; // HomePhone
-              // var icon = invoiceList.get('Emergency') ? '<i class="fa fa-support"></i> ' : '<i class="fa fa-calendar-check-o"></i> ';
+              var invoiceNumber = invoiceList.get('invoiceNumber') || '';
+              var invoiceAmount = invoiceList.get('invoiceAmount') || '0';
               if (customer.get('HomePhone'))
                 Phone += (' <i class="fa fa-home"></i> ' + customer.get('HomePhone'));
               if (customer.get('WorkPhone'))
@@ -245,10 +310,19 @@ var designToDo_ui = ui;
                 Phone += (' <i class="fa fa-mobile"></i> ' + customer.get('CellPhone'));
               listView.set('Phone', Phone);
               listView.set('Date', icon + theDate);
-              listView.set('CustomerIssues', icon + CustomerIssues);
+              var TechNotes = invoiceList.get('Comments') || '';
+              if (TechNotes.length)
+                CustomerIssues += '</br><i>Tech Notes: ' + TechNotes + '</i>';
+
+
+              if (invoiceNumber.length == 0)
+                listView.set('CustomerIssues', icon + CustomerIssues);
+              else if (invoiceNumber=='*' && invoiceAmount==0)
+                listView.set('CustomerIssues', '<b>CANCELLED</b></br> ' + CustomerIssues);
+              else
+                listView.set('CustomerIssues', '<b>Inv #' + invoiceNumber + ' $' + invoiceAmount + '</b></br> ' + CustomerIssues);
               listView.set('ServiceDate', invoiceList.get('ServiceDate'));
               if (techs) {
-                var invoiceNumber = invoiceList.get('invoiceNumber') || '';
                 if (invoiceNumber.length == 0)
                   techs = '<i class="fa fa-square-o"> ' + techs;
                 else if (invoiceNumber == '*')
@@ -427,7 +501,7 @@ var designToDo_ui = ui;
   /**
    * force
    // */
-  setTimeout(function () {
-   workOrderCommand.execute(ui);
-  }, 100);
+  // setTimeout(function () {
+  //   workOrderCommand.execute(ui);
+  // }, 100);
 }());

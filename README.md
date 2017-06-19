@@ -1,14 +1,15 @@
 TO DO
 ===
-- Add invoice search by date and ticket
-
-- Add company group check box 
-- Make company group check off in customer search
-- Make new customer add based on template
-- Work Order printable
-- Source Report
++ Add invoice search by date and ticket
 + Show contact info in search
 + Att invoice pump 1000 / 1500 to customer
++ Add company group check box
++ cancel reflected in work order
++ Source Report
+ 
+- Work Order printable
+- Make company group check off in customer search
+- Make new customer add based on template
 
 DONE EARLIER
 ===
