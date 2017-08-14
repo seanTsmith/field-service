@@ -54,7 +54,7 @@ var designToDo_ui = ui;
     name: 'Source Report',
     theme: 'danger',
     type: 'Presentation',
-    icon: 'fa-group',
+    icon: 'fa-file-text-o',
     contents: sourceReportPresentation
   });
   sourceReportCommand.presentationMode = 'Edit';
@@ -101,6 +101,7 @@ var designToDo_ui = ui;
     callbackDone();
 
     module.sources = {};
+    module.orderCount = 0;
 
     /**
      * Get all customers
@@ -119,6 +120,8 @@ var designToDo_ui = ui;
       var gotMore = customerList.moveFirst();
       while (gotMore) {
         var src = customerList.get('Source') || '(Unknown)';
+        if (src.indexOf('Referral:')>=0)
+          src = 'Referral';
         var id = customerList.get('id');
         if (id)
           customerSource[id] = src;
@@ -146,6 +149,8 @@ var designToDo_ui = ui;
             dateFrom.setHours(0, 0, 0, 0);
             dateTo.setHours(0, 0, 0, 0);
             if (ServiceDate >= dateFrom && ServiceDate < dateTo) {
+              module.orderCount++;
+
               console.log('dateFrom ' + dateFrom);
               console.log('ServiceDate ' + ServiceDate);
               console.log('dateTo ' + dateTo);
@@ -202,7 +207,9 @@ var designToDo_ui = ui;
       listView.set('Source', source);
       listView.set('Count', module.sources[source]);
     }
-    module.contents.push('#### ' + tgi.left(module.dateFrom.value.toISOString(), 10) + ' to ' + tgi.left(module.dateTo.value.toISOString(), 10));
+    listView.sort({Count:-1});
+    module.contents.push('#### ' + tgi.left(module.dateFrom.value.toISOString(), 10) + ' to ' + tgi.left(module.dateTo.value.toISOString(), 10) +
+      ' -- Total ' + module.orderCount + ' orders');
     module.contents.push(listView);
     // module.contents.push(list);
     callbackDone();
