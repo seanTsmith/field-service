@@ -9,8 +9,8 @@ var designToDo_ui = ui;
   module.viewState = 'CRITERIA';
   module.dateFrom = new tgi.Attribute({name: 'dateFrom', label: 'From', type: 'Date'});
   module.dateTo = new tgi.Attribute({name: 'dateTo', label: 'To', type: 'Date'});
-  module.dateFrom.value = new Date('7/1/2017');
-  module.dateTo.value = new Date('7/31/2017');
+  module.dateFrom.value = new Date();
+  module.dateTo.value = new Date();
   var techReportPresentation = new tgi.Presentation();
   techReportPresentation.preRenderCallback = function (command, callback) {
     console.log('module.freshView ' + module.freshView);
