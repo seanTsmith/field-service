@@ -71,6 +71,7 @@ rhc ssh bowen -n superseptic
     open_shift> cd app-root/repo
     open_shift> mongodump --host $OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT --username $OPENSHIFT_MONGODB_DB_USERNAME --password $OPENSHIFT_MONGODB_DB_PASSWORD
     open_shift> zip -r dump.zip dump
+    open_shift> rm -fr dump
     open_shift> exit
 rhc scp bowen -n superseptic download ./ app-root/repo/dump.zip
 
@@ -79,10 +80,8 @@ Restore and Run the Database
 
 - unzip dump.zip
 - remove admin folder
-* on new terminal process:
+- mongorestore dump
 
-    mongorestore dump
-    mongod --dbpath dump
 
 UBER BUG
 ===

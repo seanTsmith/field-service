@@ -9,11 +9,10 @@ var designToDo_ui = ui;
   module.viewState = 'CRITERIA';
   module.dateFrom = new tgi.Attribute({name: 'dateFrom', label: 'From', type: 'Date'});
   module.dateTo = new tgi.Attribute({name: 'dateTo', label: 'To', type: 'Date'});
-  module.dateFrom.value = new Date('6/1/2017');
-  module.dateTo.value = new Date('7/31/2017');
+  module.dateFrom.value = new Date();
+  module.dateTo.value = new Date();
   var exportEmailPresentation = new tgi.Presentation();
   exportEmailPresentation.preRenderCallback = function (command, callback) {
-    console.log('module.freshView ' + module.freshView);
     if (module.freshView) {
       module.viewState = 'CRITERIA';
     }
@@ -33,6 +32,13 @@ var designToDo_ui = ui;
       case 'CALCULATE':
         try {
           renderCalculation();
+        } catch (e) {
+          app.err('renderCriteria(' + e + ')')
+        }
+        break;
+      case 'EXPORTED':
+        try {
+          renderExported();
         } catch (e) {
           app.err('renderCriteria(' + e + ')')
         }
@@ -91,28 +97,93 @@ var designToDo_ui = ui;
   function renderCalculation() {
     module.contents.push('</br><b>PREPARING FILE PLEASE WAIT...</b></br>');
     callbackDone();
-
     module.csvData = [];
-    var emailTemplate = {
-      FirstName: '',
-      LastName: '',
-      Email: ''
-    };
+    module.customerHash = {};
+    /**
+     * Get all customers
+     */
+    var customers = new tgi.List(new site.Customer());
+    site.hostStore.getList(customers, {}, {}, function (customerList, error) {
+      if (error) {
+        app.err('Customer getList error: ' + error);
+        return;
+      }
 
-    module.csvData.push({
-      FirstName: 'Sean',
-      LastName: 'Smith',
-      Email: 'sean@smith.com'
+      /**
+       * Now get all orders
+       */
+      var orders = new tgi.List(new site.Invoice());
+      site.hostStore.getList(orders, {}, {}, function (orderList, error) {
+        if (error) {
+          app.err('Invoice getList error: ' + error);
+          return;
+        }
+        var gotMore = orderList.moveFirst();
+        while (gotMore) {
+          var ServiceDate = orderList.get('ServiceDate');
+          if (ServiceDate) {
+            ServiceDate = moment(ServiceDate).toDate();
+            var dateFrom = moment(module.dateFrom.value).toDate();
+            var dateTo = moment(module.dateTo.value).add(1, 'days').toDate();
+            dateFrom.setHours(0, 0, 0, 0);
+            dateTo.setHours(0, 0, 0, 0);
+            if (ServiceDate >= dateFrom && ServiceDate < dateTo) {
+              var CustomerID = orderList.get('CustomerID');
+              module.customerHash[CustomerID] = true;
+            }
+          }
+          gotMore = orderList.moveNext();
+        }
+        /**
+         * Create CSV struct from customers
+         */
+        var gotMore = customerList.moveFirst();
+        while (gotMore) {
+          var name = customerList.get('Customer') || '';
+          var email = customerList.get('Email') || '';
+          if (email && email.includes("@") && module.customerHash[customerList.get('id')]) {
+            console.log('Customer: ' + name + ' email: ' + email);
+            var space = name.indexOf(" ");
+            var firstName = name;
+            var lastName = '';
+            if (space > 0) {
+              firstName = tgi.left(name, space);
+              lastName = tgi.right(name, name.length - space);
+            }
+            console.log('firstName ' + firstName + '.');
+            console.log('lastName ' + lastName + '.');
+            module.csvData.push({
+              FirstName: firstName,
+              LastName: lastName,
+              Email: email
+            });
+          }
+          gotMore = customerList.moveNext();
+        }
+
+
+        /**
+         * Done...
+         */
+
+        dateFrom = tgi.left('' + moment(module.dateFrom.value).toDate(), 15);
+        dateTo = tgi.left('' + moment(module.dateTo.value).add(1, 'days').toDate(), 15);
+        module.fname = 'Bowen Service ' + dateFrom + ' to ' + dateTo + '.csv';
+
+        downloadCSV({filename: module.fname});
+
+        module.viewState = 'EXPORTED';
+        module.freshView = false;
+        exportEmailCommand.execute(designToDo_ui);
+      });
     });
-
-    module.csvData.push({
-      FirstName: 'John',
-      LastName: 'Doe',
-      Email: 'J@D.com'
-    });
-
-    downloadCSV({ filename: "test.csv" });
   }
+
+  function renderExported() {
+    module.contents.push('</br><b>File exported: ' + module.fname + '</b></br>');
+    callbackDone();
+  }
+
 
   /**
    * Export Helpers
@@ -134,9 +205,9 @@ var designToDo_ui = ui;
     result += keys.join(columnDelimiter);
     result += lineDelimiter;
 
-    data.forEach(function(item) {
+    data.forEach(function (item) {
       ctr = 0;
-      keys.forEach(function(key) {
+      keys.forEach(function (key) {
         if (ctr > 0) result += columnDelimiter;
 
         result += item[key];
@@ -168,10 +239,11 @@ var designToDo_ui = ui;
     link.setAttribute('download', filename);
     link.click();
   }
+
   /**
    * force
    */
-  setTimeout(function () {
-    exportEmailCommand.execute(ui);
-  }, 0);
+  // setTimeout(function () {
+  //   exportEmailCommand.execute(ui);
+  // }, 0);
 }());
