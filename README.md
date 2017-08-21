@@ -1,15 +1,15 @@
 NEW
 ===
 + report for tech and date range total money collected
-- Export to mailchimp
++ Export to mailchimp
 - Export to backup
-- Fields to copy for company check off:
-    Need to have Address, City, State, Zip, Number, Contact. (The number and contact will be for the resident, not the company.)
-- mailchimp info:
++ mailchimp info:
     superseptic@gmail.com
     Sewage$88
 - printable work order
 - company group / globspec
+- Fields to copy for company check off:
+    Need to have Address, City, State, Zip, Number, Contact. (The number and contact will be for the resident, not the company.)
 
 TO DO
 ===

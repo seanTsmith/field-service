@@ -144,7 +144,7 @@
     args.attributes.push(new tgi.Attribute({name: 'Email', type: 'String(50)', hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'Source', type: 'String(25)', placeHolder: 'How did they find us?', quickPick: site.customerSource, validationRule: {required: true}, hidden: '*'}));
     args.attributes.push(new tgi.Attribute({name: 'Comments', type: 'String(255)', placeHolder: '(General comments about customer not work order)', hidden: '*'}));
-    args.attributes.push(new tgi.Attribute({name: 'CompanyGroup', label: 'Company Group', type: 'Boolean', hidden: '*'}));
+    args.attributes.push(new tgi.Attribute({name: 'CompanyGroup', label: 'Third Party Billing', type: 'Boolean', hidden: '*'}));
     tgi.Model.call(this, args);
     this.modelType = "Customer";
     this.set('State','GA');

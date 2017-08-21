@@ -312,8 +312,8 @@ var designToDo_ui = ui;
   /**
    * force
    */
-  //setTimeout(function () {
-  //  site.customerCommand.execute(ui);
-  //}, 100);
+  setTimeout(function () {
+   site.customerCommand.execute(ui);
+  }, 100);
 
 }());
