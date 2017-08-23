@@ -6,9 +6,9 @@ NEW
 + mailchimp info:
     superseptic@gmail.com
     Sewage$88
-- printable work order
-- company group / globspec
-- Fields to copy for company check off:
++ printable work order
++ company group / globspec
++ Fields to copy for company check off:
     Need to have Address, City, State, Zip, Number, Contact. (The number and contact will be for the resident, not the company.)
 
 TO DO

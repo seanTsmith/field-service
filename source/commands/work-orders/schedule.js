@@ -74,7 +74,7 @@ var designToDo_ui = ui;
     args.attributes.push(new tgi.Attribute({name: 'Date', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Customer', type: 'String'}));
     // args.attributes.push(new tgi.Attribute({name: 'Contact', type: 'String'}));
-    args.attributes.push(new tgi.Attribute({name: 'City', type: 'String'}));
+    // args.attributes.push(new tgi.Attribute({name: 'City', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Address', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'Phone', type: 'String'}));
     args.attributes.push(new tgi.Attribute({name: 'CustomerIssues', label: 'Notes', type: 'String'}));
@@ -294,8 +294,8 @@ var designToDo_ui = ui;
             for (var i = 0; i < site.techID.length; i++) {
               var techID = site.techID[i];
               if (techID) {
-                if (techID == primaryTechID) tech1 = site.techList[i];
-                if (techID == secondaryTechID) tech2 = site.techList[i];
+                if (techID === primaryTechID) tech1 = site.techList[i];
+                if (techID === secondaryTechID) tech2 = site.techList[i];
               }
             }
             var techs = (tech1 || ''); //  + (tech2 ? ('/' + tech2) : '');
@@ -313,15 +313,32 @@ var designToDo_ui = ui;
               var rawDate = invoiceList.get('ServiceDate');
               var theDate = rawDate ? tgi.left(rawDate.toISOString(), 10) : '(not set)'; // ;
               var CustomerIssues = invoiceList.get('CustomerIssues') || '';
-              var Phone = ''; // HomePhone
               var invoiceNumber = invoiceList.get('invoiceNumber') || '';
               var invoiceAmount = invoiceList.get('invoiceAmount') || '0';
-              if (customer.get('HomePhone'))
-                Phone += (' <i class="fa fa-home"></i> ' + customer.get('HomePhone'));
-              if (customer.get('WorkPhone'))
-                Phone += (' <i class="fa fa-building-o"></i> ' + customer.get('WorkPhone'));
-              if (customer.get('CellPhone'))
-                Phone += (' <i class="fa fa-mobile"></i> ' + customer.get('CellPhone'));
+              var Phone = '';
+              var phoneSpace = '';
+
+              var addressFrom = customer;
+              if (customer.get('CompanyGroup'))
+                addressFrom = invoiceList;
+
+              if (customer.get('HomePhone')) {
+                Phone += (phoneSpace + '<i class="fa fa-home"></i> ' + customer.get('HomePhone'));
+                phoneSpace = ' ';
+              }
+              if (customer.get('WorkPhone')) {
+                Phone += (phoneSpace + '<i class="fa fa-building-o"></i> ' + customer.get('WorkPhone'));
+                phoneSpace = ' ';
+              }
+              if (customer.get('CellPhone')) {
+                Phone += (phoneSpace + '<i class="fa fa-mobile"></i> ' + customer.get('CellPhone'));
+                phoneSpace = ' ';
+              }
+              if (customer.get('CompanyGroup') && invoiceList.get('ContactPhone')) {
+                Phone += (phoneSpace + '<strong>' + invoiceList.get('Contact') + '</strong> ' + invoiceList.get('ContactPhone'));
+                phoneSpace = ' ';
+              }
+
               listView.set('Phone', Phone);
               listView.set('Date', icon + theDate);
               var TechNotes = invoiceList.get('Comments') || '';
@@ -331,15 +348,15 @@ var designToDo_ui = ui;
 
               if (invoiceNumber.length === 0)
                 listView.set('CustomerIssues', icon + CustomerIssues);
-              else if (invoiceNumber === '*' && invoiceAmount === 0)
+              else if (invoiceNumber === '*' && Number(invoiceAmount) === 0)
                 listView.set('CustomerIssues', '<b>CANCELLED</b></br> ' + CustomerIssues);
               else
                 listView.set('CustomerIssues', '<b>Inv #' + invoiceNumber + ' $' + invoiceAmount + '</b></br> ' + CustomerIssues);
               listView.set('ServiceDate', invoiceList.get('ServiceDate'));
               if (techs) {
-                if (invoiceNumber.length == 0)
+                if (invoiceNumber.length === 0)
                   techs = '<i class="fa fa-square-o"> ' + techs;
-                else if (invoiceNumber == '*')
+                else if (invoiceNumber === '*')
                   techs = '<i class="fa fa-check-square-o"> ' + techs;
                 else
                   techs = '<i class="fa fa-file-text-o"> ' + techs;
@@ -350,51 +367,61 @@ var designToDo_ui = ui;
                 app.err('getModel error: ' + error);
               } else {
                 var cust = customer.get('Customer');
-                if (customer.get('Contact')) {
+                if (customer.get('CompanyGroup')) {
+                  cust = cust + ' / <i class="fa fa-address-book"></i> ' + invoiceList.get('Contact');
+                }
+                else if (customer.get('Contact')) {
                   cust = cust + ' / ' + customer.get('Contact');
                 }
                 listView.set('Customer', cust);
-                listView.set('City', customer.get('City'));
-                listView.set('Address', customer.get('Address1'));
+                listView.set('Address', addressFrom.get('Address1') + '<br><strong>' + addressFrom.get('City') + '</strong>');
               }
               /**
                * Add to reportData
                */
-              var techName = tech1 || '(Unassigned)';
-              console.log('techName: ' + techName);
-              var currTechRecordNo = -1;
-              for (var techNo = 0; techNo < reportData.length && currTechRecordNo < 0; techNo++) {
-                if (reportData[techNo].name === techName)
-                  currTechRecordNo = techNo;
-              }
-              if (currTechRecordNo < 0) {
-                console.log('ADDED to reportData');
-                currTechRecordNo = reportData.length;
-                reportData.push({
-                  name: techName,
-                  orders: []
+              if (!(invoiceNumber === '*' && Number(invoiceAmount) === 0)) {
+                var techName = tech1 || '(Unassigned)';
+                var currTechRecordNo = -1;
+                for (var techNo = 0; techNo < reportData.length && currTechRecordNo < 0; techNo++) {
+                  if (reportData[techNo].name === techName)
+                    currTechRecordNo = techNo;
+                }
+                if (currTechRecordNo < 0) {
+                  currTechRecordNo = reportData.length;
+                  reportData.push({
+                    name: techName,
+                    orders: []
+                  });
+                }
+
+                var fullAddress = addressFrom.get('Address1') + '<br>';
+                if (addressFrom.get('Address2'))
+                  fullAddress += addressFrom.get('Address2') + '<br>';
+                fullAddress += addressFrom.get('City');
+                if (addressFrom.get('State'))
+                  fullAddress += ', ' + addressFrom.get('State');
+                if (addressFrom.get('Zip'))
+                  fullAddress += ' ' + addressFrom.get('Zip');
+
+                var phones = '';
+                if (customer.get('HomePhone'))
+                  phones += '<strong>H: </strong>' + customer.get('HomePhone') + '<br>';
+                if (customer.get('WorkPhone'))
+                  phones += '<strong>W: </strong>' + customer.get('WorkPhone') + '<br>';
+                if (customer.get('CellPhone'))
+                  phones += '<strong>C: </strong>' + customer.get('CellPhone') + '<br>';
+                if (customer.get('CompanyGroup') && invoiceList.get('ContactPhone')) {
+                  phones += '<i class="fa fa-address-book"></i> ' + invoiceList.get('ContactPhone') + '<br>';
+                }
+
+                reportData[currTechRecordNo].orders.push({
+                  name: cust,
+                  city: addressFrom.get('City'),
+                  address: fullAddress,
+                  phones: phones,
+                  notes: CustomerIssues
                 });
               }
-              var fulladdress = customer.get('Address1') + '<br>';
-              if (customer.get('Address2'))
-                fulladdress += customer.get('Address2') + '<br>';
-              fulladdress += customer.get('City') + ', ' + customer.get('State') + customer.get('Zip') + '<br>';
-
-              var phones = '';
-              if (customer.get('HomePhone'))
-                phones += '<strong>H: </strong>' + customer.get('HomePhone') + '<br>';
-              if (customer.get('WorkPhone'))
-                phones += '<strong>W: </strong>' + customer.get('WorkPhone') + '<br>';
-              if (customer.get('CellPhone'))
-                phones += '<strong>C: </strong>' + customer.get('CellPhone') + '<br>';
-
-              reportData[currTechRecordNo].orders.push({
-                name: cust,
-                city: customer.get('City'),
-                address: fulladdress,
-                phones: phones,
-                notes: CustomerIssues
-              });
               nextRow();
             });
           }
@@ -441,7 +468,8 @@ var designToDo_ui = ui;
       if (module.orderID) {
         var choices = [];
         var choice1 = choices[choices.push('Assign primary tech') - 1];
-        var choice2 = choices[choices.push('Load selected customer') - 1];
+        var choice2 = choices[choices.push('Load CUSTOMER') - 1];
+        var choice2b = choices[choices.push('Load ORDER') - 1];
         var choice3 = choices[choices.push('Open address in Bing maps') - 1];
         var choice4 = choices[choices.push('Mark as done (or unmark)') - 1];
         app.choose('What would you like to do?', choices, function (choice) {
@@ -457,6 +485,20 @@ var designToDo_ui = ui;
               site.customerMaintenance.internalRefresh = true;
               site.customerMaintenance.viewState = 'VIEW';
               site.customerCommand.execute(designToDo_ui);
+              break;
+            case choice2b:
+              site.customerInvoiceIsNew = false;
+              site.customerInvoice = new site.Invoice();
+              site.customerInvoice.set('id', id);
+              site.hostStore.getModel(site.customerInvoice, function (model, error) {
+                site.customerInvoice = model;
+                if (error) {
+                  app.err('getModel error: ' + error);
+                } else {
+                  site.customerMaintenance.viewState = 'CUSTOM';
+                  site.customerCommand.execute(designToDo_ui);
+                }
+              });
               break;
             case choice3:
               site.Customer.Map(listView.get('CustomerID'));
@@ -567,6 +609,7 @@ var designToDo_ui = ui;
       data += '<meta charset="UTF-8">';
       data += '<title>Bowen Septic Schedule</title>';
       data += '<link rel="stylesheet" href="lib/desktop/bootstrap/css/bootstrap.css">';
+      data += '<link rel="stylesheet" href="lib/desktop/font-awesome/css/font-awesome.css">';
       data += '</head>';
 
       data += '<body>';
@@ -602,50 +645,16 @@ var designToDo_ui = ui;
           data += '</table>';
           data += '</div>';
           data += '<hr>';
-
-        }
-
-      }
-
-      /*
-      for (var tech = 1; tech < 3; tech++) {
-        data += '<h1 style="page-break-before:always;">Saturday 2017-08-19 -- BOB BOBBY BOB</h1>';
-        for (var cust = 1; cust < 5; cust++) {
-          data += '<div class="table">';
-          data += '<table style="font-size: larger" class="table">';
-          data += '<thead>';
-          data += '<tr>';
-          data += '<th width="75%">Dawn Leece</th>';
-          data += '<th width="25%">Loganville</th>';
-          data += '</tr>';
-          data += '</thead>';
-          data += '<tbody>';
-          data += '<tr>';
-          data += '<td width="75%">';
-          data += '3000 Hampton Valley Dr<br>';
-          data += 'Loganville, CA 30052<br>';
-          data += '<br>';
-          data += 'Locate and uncover tank.....$275........Call first and get info on which driveway to enter.  Also add stuff on text to just well make it bigger if nothing else thanks...';
-          data += '</td>';
-          data += '<td width="25%">';
-          data += '<strong>H: </strong>470-242-9505<br>';
-          data += '<strong>C: </strong>470-242-9505<br>';
-          data += '</td>';
-          data += '</tr>';
-          data += '</tbody>';
-          data += '</table>';
-          data += '</div>';
-          data += '<hr>';
         }
       }
-*/
-
       data += '</div>';
       data += '</body>';
       data += '</html>';
       data += '<script>';
+      data += 'setTimeout(function () {';
       data += 'window.print();';
       data += 'window.close();';
+      data += '},250);';
       data += '</script>';
 
       var new_page = window.open();
@@ -658,7 +667,7 @@ var designToDo_ui = ui;
   /**
    * force
    // */
-  // setTimeout(function () {
-  //   workOrderCommand.execute(ui);
-  // }, 100);
+  setTimeout(function () {
+    workOrderCommand.execute(ui);
+  }, 100);
 }());
