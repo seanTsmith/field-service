@@ -356,10 +356,10 @@ var designToDo_ui = ui;
   /**
    * force
    */
-  setTimeout(function () {
-    site.customerMaintenance.modelID = '599adfb8fe2a04ab361b2f04';
-    site.customerMaintenance.internalRefresh = true;
-    site.customerMaintenance.viewState = 'VIEW';
-    site.customerCommand.execute(designToDo_ui);
-  }, 100);
+  // setTimeout(function () {
+  //   site.customerMaintenance.modelID = '599adfb8fe2a04ab361b2f04';
+  //   site.customerMaintenance.internalRefresh = true;
+  //   site.customerMaintenance.viewState = 'VIEW';
+  //   site.customerCommand.execute(designToDo_ui);
+  // }, 100);
 }());
