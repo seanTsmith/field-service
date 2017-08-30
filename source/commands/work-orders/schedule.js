@@ -600,7 +600,6 @@ var designToDo_ui = ui;
      * Print Orders
      */
     function printOrders() {
-
       var data = '';
       data += '<!DOCTYPE html>';
       data += '<html lang="en">';
@@ -659,8 +658,6 @@ var designToDo_ui = ui;
 
       var new_page = window.open();
       new_page.document.write(data);
-
-
     }
   }
 

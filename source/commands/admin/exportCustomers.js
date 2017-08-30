@@ -103,20 +103,19 @@ var designToDo_ui = ui;
         app.err('Customer getList error: ' + error);
         return;
       }
-
-      /**
-       * Now get all orders
-       */
-      var orders = new tgi.List(new site.Invoice());
-      site.hostStore.getList(orders, {}, {}, function (orderList, error) {
-        if (error) {
-          app.err('Invoice getList error: ' + error);
-          return;
-        }
-        var gotMore = orderList.moveFirst();
-        while (gotMore) {
-          gotMore = orderList.moveNext();
-        }
+      // /**
+      //  * Now get all orders
+      //  */
+      // var orders = new tgi.List(new site.Invoice());
+      // site.hostStore.getList(orders, {}, {}, function (orderList, error) {
+      //   if (error) {
+      //     app.err('Invoice getList error: ' + error);
+      //     return;
+      //   }
+      //   var gotMore = orderList.moveFirst();
+      //   while (gotMore) {
+      //     gotMore = orderList.moveNext();
+      //   }
 
         /**
          * Create CSV struct from customers
@@ -166,7 +165,8 @@ var designToDo_ui = ui;
         module.freshView = false;
         exportCustomersCommand.execute(designToDo_ui);
       });
-    });
+
+    // }); was Now get all orders
   }
 
   function renderExported() {
@@ -214,20 +214,30 @@ var designToDo_ui = ui;
     var csv = convertArrayOfObjectsToCSV({
       data: module.csvData
     });
-    if (csv == null) return;
+    if (csv === null) return;
+    // filename = args.filename || 'export.csv';
+    //
+    // if (!csv.match(/^data:text\/csv/i)) {
+    //   csv = 'data:text/csv;charset=utf-8,' + csv;
+    // }
+    // data = encodeURI(csv);
+    // console.log('data is '+ data.length);
+    // link = document.createElement('a');
+    // link.setAttribute('href', data);
+    // link.setAttribute('download', filename);
+    // link.click();
 
-    filename = args.filename || 'export.csv';
+    // var new_page = window.open();
+    // new_page.document.write(csv);
 
-    if (!csv.match(/^data:text\/csv/i)) {
-      csv = 'data:text/csv;charset=utf-8,' + csv;
-    }
-    data = encodeURI(csv);
-    console.log('data is '+ data.length);
+    var hiddenElement = document.createElement('a');
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+    hiddenElement.target = '_blank';
+    hiddenElement.download = 'people.csv';
+    hiddenElement.click();
 
-    link = document.createElement('a');
-    link.setAttribute('href', data);
-    link.setAttribute('download', filename);
-    link.click();
+
+
   }
 
   /**
