@@ -13,6 +13,8 @@
       console.log('hostStore unavailable (' + err + ')');
     } else {
       console.log('hostStore connected');
+      // site.hostStore.transport.onRaw(inbound);
+      // site.hostStore.transport.sendRaw('sup foo');
       loadTechs();
     }
     console.log(site.hostStore.name + ' ' + site.hostStore.storeType);
@@ -22,6 +24,20 @@
   app.start(function (request) {
     app.info('app got ' + request);
   });
+  /**
+   * Messages inbound
+   */
+  function inbound(msg) {
+    switch (msg) {
+      case 'exportCustomersCommandOK':
+        if (site.exportCustomersCommandOK)
+          site.exportCustomersCommandOK();
+        break;
+      default:
+        console.log('inbound (UNKNOWN MSG): ' + msg);
+        break;
+    }
+  }
 
   function loadTechs() {
     site.techList = ['(unassigned)'];

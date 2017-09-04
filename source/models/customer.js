@@ -121,8 +121,9 @@
     'Woodstock'
   ];
 
-  // .
-
+  /**
+   * Customer Table (server.js also!)
+   */
   site.Customer = function (args) {
     if (false === (this instanceof site.Customer)) throw new Error('new operator required');
     args = args || {};

@@ -10,7 +10,7 @@ var root = this;
 var TGI = {
   CORE: function () {
     return {
-      version: '0.4.42',
+      version: '0.4.43',
       Application: Application,
       Attribute: Attribute,
       Command: Command,
@@ -3027,7 +3027,7 @@ var cpad = function (expr, length, fillChar) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.HOST = function () {
   return {
-    version: '0.0.30'
+    version: '0.0.31'
   };
 };
 
@@ -3038,13 +3038,13 @@ TGI.STORE.HOST = function () {
 Transport.setMessageHandler('PutModel', function (messageContents, fn) {
   // create proxy for client model
   var ProxyPutModel = function (args) {
+    //console.log('PutModel messageContents: json  ' + JSON.stringify(messageContents));
     Model.call(this, args);
     this.modelType = messageContents.modelType;
     this.attributes = [];
     var a, attrib, v;
     for (a in messageContents.attributes) {
-      //console.log('putting ' + messageContents.attributes[a]);
-      //console.log('json  ' + JSON.stringify(messageContents.attributes[a]));
+      //console.log('PutModel Attribute: json  ' + JSON.stringify(messageContents.attributes[a]));
       if (messageContents.attributes[a].type == 'Model') {
         v = new Attribute.ModelID(createModelFromModelType(messageContents.attributes[a].modelType));
         v.value = messageContents.attributes[a].value.value;
@@ -3182,7 +3182,7 @@ Transport.setMessageHandler('GetList', function (messageContents, fn) {
 TGI.STORE = TGI.STORE || {};
 TGI.STORE.MONGODB = function () {
   return {
-    version: '0.0.22',
+    version: '0.0.23',
     MongoStore: MongoStore
   };
 };
@@ -3481,6 +3481,7 @@ MongoStore.prototype.getList = function (list, filter, arg3, arg4) {
     callback = arg3;
   }
   if (!(list instanceof List)) throw new Error('argument must be a List');
+  if (list.view) throw new Error('List is View type use getViewList');
   if (!(filter instanceof Object)) throw new Error('filter argument must be Object');
   if (typeof callback != "function") throw new Error('callback required');
   var store = this;

@@ -1,11 +1,12 @@
 {
   "name": "field-service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "field service app",
   "dependencies": {
-    "socket.io": "*",
-    "express": "^4.1.2",
+    "socket.io": "1.3.7",
+    "express": "4.13.3",
     "body-parser": "^1.1.2",
+    "download": "*",
     "errorhandler": "^1.0.1",
     "method-override": "^1.0.0",
     "serve-static": "^1.10.0",

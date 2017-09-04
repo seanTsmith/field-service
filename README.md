@@ -28,7 +28,8 @@ TO DO
 DONE EARLIER
 ===
 + fix criteria to use date
-+ It would be a big help if there was a check off place on the sch page..for when the job has been done during the day for scheduling reasons...
++ It would be a big help if there was a chec
+k off place on the sch page..for when the job has been done during the day for scheduling reasons...
 
 TO DO LATER (PUNTED)
 ===

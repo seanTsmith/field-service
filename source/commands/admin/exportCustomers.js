@@ -81,9 +81,19 @@ var designToDo_ui = ui;
         module.viewState = 'CALCULATE';
         module.freshView = false;
         exportCustomersCommand.execute(designToDo_ui);
+        site.hostStore.transport.sendRaw('exportCustomersCommand');
       }
     }));
     callbackDone();
+  }
+
+  /**
+   * exportCustomersCommandOK message callback
+   */
+  function exportCustomersCommandOK_callback() {
+    module.viewState = 'EXPORTED';
+    module.freshView = false;
+    exportCustomersCommand.execute(designToDo_ui);
   }
 
   /**
@@ -93,79 +103,79 @@ var designToDo_ui = ui;
     module.contents.push('</br><b>PREPARING FILE PLEASE WAIT...</b></br>');
     callbackDone();
     module.csvData = [];
+    site.exportCustomersCommandOK = exportCustomersCommandOK_callback;
 
     /**
      * Get all customers
      */
     var customers = new tgi.List(new site.Customer());
-    site.hostStore.getList(customers, {}, {}, function (customerList, error) {
-      if (error) {
-        app.err('Customer getList error: ' + error);
-        return;
-      }
-      // /**
-      //  * Now get all orders
-      //  */
-      // var orders = new tgi.List(new site.Invoice());
-      // site.hostStore.getList(orders, {}, {}, function (orderList, error) {
-      //   if (error) {
-      //     app.err('Invoice getList error: ' + error);
-      //     return;
-      //   }
-      //   var gotMore = orderList.moveFirst();
-      //   while (gotMore) {
-      //     gotMore = orderList.moveNext();
-      //   }
-
-        /**
-         * Create CSV struct from customers
-         */
-        var gotMore = customerList.moveFirst();
-        var count = 0;
-        while (count++ >=0 && gotMore) {
-          var customerFields =
-            [
-              'Customer',
-              'Address1',
-              'Address2',
-              'City',
-              'State',
-              'Zip',
-              'County',
-              'CrossStreet',
-              'Contact',
-              'HomePhone',
-              'WorkPhone',
-              'CellPhone',
-              'Email',
-              'Source',
-              'Comments',
-              'CompanyGroup'
-            ];
-          var pushMe={};
-          for (var i = 0; i < customerFields.length; i++) {
-            var fld = customerFields[i];
-            pushMe[fld] = customerList.get(fld);
-
-          }
-          module.csvData.push(pushMe);
-          gotMore = customerList.moveNext();
-        }
-        console.log('count is ' + count);
-
-        /**
-         * Done...
-         */
-
-        module.fname = 'Bowen Septic Customers and Orders.csv';
-
-        downloadCSV({filename: module.fname});
-
-        module.viewState = 'EXPORTED';
-        module.freshView = false;
-        exportCustomersCommand.execute(designToDo_ui);
-      });
-
+    // site.hostStore.getList(customers, {}, {}, function (customerList, error) {
+    //   if (error) {
+    //     app.err('Customer getList error: ' + error);
+    //     return;
+    //   }
+    //   // /**
+    //   //  * Now get all orders
+    //   //  */
+    //   // var orders = new tgi.List(new site.Invoice());
+    //   // site.hostStore.getList(orders, {}, {}, function (orderList, error) {
+    //   //   if (error) {
+    //   //     app.err('Invoice getList error: ' + error);
+    //   //     return;
+    //   //   }
+    //   //   var gotMore = orderList.moveFirst();
+    //   //   while (gotMore) {
+    //   //     gotMore = orderList.moveNext();
+    //   //   }
+    //
+    //     /**
+    //      * Create CSV struct from customers
+    //      */
+    //     var gotMore = customerList.moveFirst();
+    //     var count = 0;
+    //     while (count++ >=0 && gotMore) {
+    //       var customerFields =
+    //         [
+    //           'Customer',
+    //           'Address1',
+    //           'Address2',
+    //           'City',
+    //           'State',
+    //           'Zip',
+    //           'County',
+    //           'CrossStreet',
+    //           'Contact',
+    //           'HomePhone',
+    //           'WorkPhone',
+    //           'CellPhone',
+    //           'Email',
+    //           'Source',
+    //           'Comments',
+    //           'CompanyGroup'
+    //         ];
+    //       var pushMe={};
+    //       for (var i = 0; i < customerFields.length; i++) {
+    //         var fld = customerFields[i];
+    //         pushMe[fld] = customerList.get(fld);
+    //
+    //       }
+    //       module.csvData.push(pushMe);
+    //       gotMore = customerList.moveNext();
+    //     }
+    //     console.log('count is ' + count);
+    //
+    //     /**
+    //      * Done...
+    //      */
+    //
+    //     module.fname = 'Bowen Septic Customers and Orders.csv';
+    //
+    //     downloadCSV({filename: module.fname});
+    //
+    //     module.viewState = 'EXPORTED';
+    //     module.freshView = false;
+    //     exportCustomersCommand.execute(designToDo_ui);
+    //   });
     // }); was Now get all orders
   }
 
@@ -237,13 +247,12 @@ var designToDo_ui = ui;
     hiddenElement.click();
 
 
-
   }
 
   /**
    * force
    */
-  setTimeout(function () {
-    exportCustomersCommand.execute(ui);
-  }, 0);
+  // setTimeout(function () {
+  //   exportCustomersCommand.execute(ui);
+  // }, 0);
 }());
