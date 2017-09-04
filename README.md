@@ -3,9 +3,6 @@ NEW
 + report for tech and date range total money collected
 + Export to mailchimp
 - Export to backup
-+ mailchimp info:
-    superseptic@gmail.com
-    Sewage$88
 + printable work order
 + company group / globspec
 + Fields to copy for company check off:
