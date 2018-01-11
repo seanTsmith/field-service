@@ -1,15 +1,19 @@
-NEW
+TO DO
+===
+- load order not working
+- Export to backup
+- Need map button inside order
+- Schedule / click / load work order fails unless load customer done first
+
+DONE EARLIER
 ===
 + report for tech and date range total money collected
 + Export to mailchimp
-- Export to backup
 + printable work order
 + company group / globspec
 + Fields to copy for company check off:
     Need to have Address, City, State, Zip, Number, Contact. (The number and contact will be for the resident, not the company.)
 
-TO DO
-===
 + Add invoice search by date and ticket
 + Show contact info in search
 + Att invoice pump 1000 / 1500 to customer
@@ -17,16 +21,12 @@ TO DO
 + cancel reflected in work order
 + Source Report
 
-- Andrew
-- Work Order printable
-- Make company group check off in customer search
-- Make new customer add based on template
-
-DONE EARLIER
-===
++ Andrew
++ Work Order printable
++ Make company group check off in customer search
++ Make new customer add based on template
 + fix criteria to use date
-+ It would be a big help if there was a chec
-k off place on the sch page..for when the job has been done during the day for scheduling reasons...
++ It would be a big help if there was a check off place on the sch page..for when the job has been done during the day for scheduling reasons...
 
 TO DO LATER (PUNTED)
 ===
