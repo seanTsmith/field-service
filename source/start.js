@@ -41,7 +41,9 @@
 
   function loadTechs() {
     site.techList = ['(unassigned)'];
+    site.techListFull = ['(unassigned)'];
     site.techID = [null];
+    site.techIDFull = [null];
     site.hostStore.getList(new tgi.List(new site.Tech()),[],{name:1}, function (list, error) {
       if (error) {
         console.log('error loading tech names: ' + error);
@@ -49,7 +51,9 @@
         var gotMore = list.moveFirst();
         var cnt = 0;
         while (gotMore) {
-          if (list.get('CellPhone') && list.get('CellPhone').length) {
+          site.techListFull.push(list.get('name'));
+          site.techIDFull.push(list.get('id'));
+          if ((!list.get('Inactive')) && list.get('CellPhone') && list.get('CellPhone').length) {
             if (cnt++ < 20) {
               site.techList.push(list.get('name'));
               site.techID.push(list.get('id'));

@@ -21,8 +21,7 @@
    * no deletes for now
    */
   techMaintenance.onDelete(function (model, callback) {
-
-      callback(new Error('Techs cannot be deleted at this time.'));
+      callback(new Error('Techs cannot be deleted you must make inactive.'));
   });
 
 

@@ -9,7 +9,7 @@ var designToDo_ui = ui;
   module.viewState = 'CRITERIA';
   module.dateFrom = new tgi.Attribute({name: 'dateFrom', label: 'From', type: 'Date'});
   module.dateTo = new tgi.Attribute({name: 'dateTo', label: 'To', type: 'Date'});
-  module.dateFrom.value = new Date();
+  module.dateFrom.value = new Date('09/01/2020');
   module.dateTo.value = new Date();
   var lastServiceReportPresentation = new tgi.Presentation();
   lastServiceReportPresentation.preRenderCallback = function (command, callback) {
@@ -38,7 +38,14 @@ var designToDo_ui = ui;
         break;
       case 'PRINTED':
         try {
-          renderPrinted();
+          renderPrinted(true);
+        } catch (e) {
+          app.err('renderCriteria(' + e + ')')
+        }
+        break;
+      case 'FAILED':
+        try {
+          renderPrinted(false);
         } catch (e) {
           app.err('renderCriteria(' + e + ')')
         }
@@ -129,37 +136,46 @@ var designToDo_ui = ui;
             dateTo.setHours(0, 0, 0, 0);
             if (ServiceDate >= dateFrom && ServiceDate < dateTo) {
               var CustomerID = orderList.get('CustomerID');
-              module.customerHash[CustomerID] = true;
+              if (!module.customerHash[CustomerID])
+                module.customerHash[CustomerID] = [];
+              module.customerHash[CustomerID].push({
+                ServiceDate: orderList.get('ServiceDate'),
+                TankPumped: orderList.get('TankPumped'),
+                TankPumped1500: orderList.get('TankPumped1500'),
+                CustomerIssues: orderList.get('CustomerIssues'),
+                Comments: orderList.get('Comments'),
+              });
             }
           }
           gotMore = orderList.moveNext();
         }
+
+        console.log(module.customerHash);
+
         /**
          * Create CSV struct from customers
          */
-        var gotMore = customerList.moveFirst();
-        while (gotMore) {
-          var name = customerList.get('Customer') || '';
-          var email = customerList.get('Email') || '';
-          if (email && email.includes("@") && module.customerHash[customerList.get('id')]) {
-            console.log('Customer: ' + name + ' email: ' + email);
-            var space = name.indexOf(" ");
-            var firstName = name;
-            var lastName = '';
-            if (space > 0) {
-              firstName = tgi.left(name, space);
-              lastName = tgi.right(name, name.length - space);
-            }
-            console.log('firstName ' + firstName + '.');
-            console.log('lastName ' + lastName + '.');
-            module.csvData.push({
-              FirstName: firstName,
-              LastName: lastName,
-              Email: email
-            });
-          }
-          gotMore = customerList.moveNext();
-        }
+        // var gotMore = customerList.moveFirst();
+        // console.log('BOOH');
+        // while (gotMore) {
+        //   var name = customerList.get('Customer') || '';
+        //   if (module.customerHash[customerList.get('id')]) {
+        //     console.log('Customer: ' + name);
+        //     var space = name.indexOf(" ");
+        //     var firstName = name;
+        //     var lastName = '';
+        //     if (space > 0) {
+        //       firstName = tgi.left(name, space);
+        //       lastName = tgi.right(name, name.length - space);
+        //     }
+        //     // console.log('firstName ' + firstName + '.');
+        //     // console.log('lastName ' + lastName + '.');
+        //     module.csvData.push({
+        //       name: name,
+        //     });
+        //   }
+        //   gotMore = customerList.moveNext();
+        // }
 
 
         /**
@@ -172,16 +188,140 @@ var designToDo_ui = ui;
 
         // downloadCSV({filename: module.fname});
 
-        module.viewState = 'PRINTED';
-        module.freshView = false;
-        lastServiceReportCommand.execute(designToDo_ui);
+        printReport(customers);
+
       });
     });
   }
 
-  function renderPrinted() {
+  function printReport(customer) {
+    let data = '';
+    data += '<!DOCTYPE html>';
+    data += '<html lang="en">';
+
+    data += '<head>';
+    data += '<meta charset="UTF-8">';
+    data += '<title>Bowen Septic Schedule</title>';
+    data += '<link rel="stylesheet" href="lib/desktop/bootstrap/css/bootstrap.css">';
+    data += '<link rel="stylesheet" href="lib/desktop/font-awesome/css/font-awesome.css">';
+    data += '</head>';
+
+    data += '<body>';
+    data += '<div class="container">';
+
+    reportDetails();
+
+
+    data += '</div>';
+    data += '</body>';
+    data += '</html>';
+    data += '<script>';
+    data += 'setTimeout(function () {';
+    data += 'window.print();';
+    data += 'window.close();';
+    data += '},250);';
+    data += '</script>';
+    console.log('printReport()');
+    var new_page = window.open();
+    if (new_page) {
+      new_page.document.write(data);
+      module.viewState = 'PRINTED';
+    } else {
+      module.viewState = 'FAILED';
+    }
+    module.freshView = false;
+    lastServiceReportCommand.execute(designToDo_ui);
+
+
+    function reportDetails() {
+      let dateRange = ' ' + tgi.left(module.dateFrom.value.toISOString(), 10) + ' - ' + tgi.left(module.dateTo.value.toISOString(), 10);
+      let header2 = '<h2>Last Service Report' + dateRange + '</h2>';
+      let pageHeadCountDown = 0;
+      customer.sort({Customer: 1});
+      let gotMore = customer.moveFirst();
+      while (gotMore) {
+
+        if (module.customerHash[customer.get('id')]) {
+
+          if (pageHeadCountDown <= 0) {
+            data += header2;
+            header2 = '<h2 style="page-break-before:always;">Last Service Report' + dateRange + '</h2>';
+            pageHeadCountDown = 5;
+          }
+
+          // let name = customer.get('Customer') || '';
+          // data += (name + '</BR>');
+
+          let name = customer.get('Customer') || '(blank)';
+          let city = customer.get('city') || '(unknown)'
+          let address = customer.get('address1') || '(unknown)'
+          let notes = '';
+          let orders = module.customerHash[customer.get('id')];
+          if (orders) {
+
+            notes = '' + tgi.left(orders[0].ServiceDate.toISOString(), 10);
+            if (orders[0].Comments)
+              notes += (' Tech Notes: ' + orders[0].Comments);
+            else
+              notes += (' Customer Issues: ' + orders[0].CustomerIssues);
+            // module.customerHash[CustomerID].push({
+            //   ServiceDate: orderList.get('ServiceDate'),
+            //   TankPumped: orderList.get('TankPumped'),
+            //   TankPumped1500: orderList.get('TankPumped1500'),
+            //   CustomerIssues: orderList.get('CustomerIssues'),
+            //   Comments: orderList.get('Comments'),
+            // });
+
+          }
+
+
+          let phones = '';
+          if (customer.get('HomePhone'))
+            phones += '<strong>H: </strong>' + customer.get('HomePhone') + '<br>';
+          if (customer.get('WorkPhone'))
+            phones += '<strong>W: </strong>' + customer.get('WorkPhone') + '<br>';
+          if (customer.get('CellPhone'))
+            phones += '<strong>C: </strong>' + customer.get('CellPhone') + '<br>';
+
+
+          data += '<div class="table">';
+          data += '<table style="font-size: larger" class="table">';
+          data += '<thead>';
+          data += '<tr>';
+          data += '<th width="75%">' + name + '</th>';
+          data += '<th width="25%">' + city + '</th>';
+          data += '</tr>';
+          data += '</thead>';
+          data += '<tbody>';
+          data += '<tr>';
+          data += '<td width="75%">';
+          data += address;
+          data += '<br>';
+          data += notes;
+          data += '</td>';
+          data += '<td width="25%">';
+          data += phones;
+          data += '</td>';
+          data += '</tr>';
+          data += '</tbody>';
+          data += '</table>';
+          data += '</div>';
+          // data += '<hr>';
+
+          pageHeadCountDown--;
+        }
+
+        gotMore = customer.moveNext();
+      }
+    }
+  }
+
+  function renderPrinted(success) {
     // module.contents.push('</br><b>File exported: ' + module.fname + '</b></br>');
-    module.contents.push('</br><b>Report Printed</b></br>');
+    if (success)
+      module.contents.push('</br><b>Report Printed</b></br>');
+    else
+      module.contents.push('</br><b>Report Failed to print make sure popups are enabled for this site.</b></br>');
     callbackDone();
   }
 

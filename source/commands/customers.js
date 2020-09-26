@@ -121,13 +121,13 @@ var designToDo_ui = ui;
     secondaryTech.value = '(unassigned)';
     var primaryTechID = site.customerInvoice.get('PrimaryTechID');
     var secondaryTechID = site.customerInvoice.get('secondaryTechID');
-    for (var i = 0; i < site.techID.length; i++) {
-      var techID = site.techID[i];
+    for (var i = 0; i < site.techIDFull.length; i++) {
+      var techID = site.techIDFull[i];
       if (techID === primaryTechID) {
-        primaryTech.value = site.techList[i];
+        primaryTech.value = site.techListFull[i];
       }
       if (techID === secondaryTechID)
-        secondaryTech.value = site.techList[i];
+        secondaryTech.value = site.techListFull[i];
     }
 
     site.customerCommand.presentationMode = 'Edit';

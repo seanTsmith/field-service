@@ -614,9 +614,12 @@ var designToDo_ui = ui;
       data += '<body>';
       data += '<div class="container">';
 
+      var header2 = '<h2>Bowen Septic Work Orders</h2>';
+
       for (var i = 0; i < reportData.length; i++) {
         var techRecord = reportData[i];
-        data += '<h2 style="page-break-before:always;">Bowen Septic Work Orders</h2>';
+        data += header2;
+        header2 = '<h2 style="page-break-before:always;">Bowen Septic Work Orders</h2>';
         data += '<h1>' + reportDate + ' -- ' + techRecord.name + '</h1>';
 
         for (var j = 0; j < techRecord.orders.length; j++) {
@@ -650,9 +653,10 @@ var designToDo_ui = ui;
       data += '</body>';
       data += '</html>';
       data += '<script>';
-      data += 'setTimeout(function () {';
-      data += 'window.print();';
-      data += 'window.close();';
+      data += 'setTimeout(function () {\n';
+      data += "console.log('whatttt');\n";
+      data += 'window.print();\n';
+      // data += 'window.close();';
       data += '},250);';
       data += '</script>';
 
