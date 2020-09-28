@@ -9,7 +9,7 @@ var designToDo_ui = ui;
   module.viewState = 'CRITERIA';
   module.dateFrom = new tgi.Attribute({name: 'dateFrom', label: 'From', type: 'Date'});
   module.dateTo = new tgi.Attribute({name: 'dateTo', label: 'To', type: 'Date'});
-  module.dateFrom.value = new Date('09/01/2020');
+  module.dateFrom.value = new Date();
   module.dateTo.value = new Date();
   var lastServiceReportPresentation = new tgi.Presentation();
   lastServiceReportPresentation.preRenderCallback = function (command, callback) {
@@ -255,15 +255,27 @@ var designToDo_ui = ui;
           let name = customer.get('Customer') || '(blank)';
           let city = customer.get('city') || '(unknown)'
           let address = customer.get('address1') || '(unknown)'
-          let notes = '';
           let orders = module.customerHash[customer.get('id')];
-          if (orders) {
+          let notes = '';
 
-            notes = '' + tgi.left(orders[0].ServiceDate.toISOString(), 10);
-            if (orders[0].Comments)
-              notes += (' Tech Notes: ' + orders[0].Comments);
-            else
-              notes += (' Customer Issues: ' + orders[0].CustomerIssues);
+          if (orders) {
+            for (let order of orders) {
+              // console.log(order);
+
+              notes += '<strong> '+tgi.left(order.ServiceDate.toISOString(), 10)+'</strong>';
+              if (order.Comments)
+                notes += (' Tech Notes: ' + order.Comments);
+              else
+                notes += (' Customer Issues: ' + order.CustomerIssues);
+
+
+            }
+
+            // notes = '' + tgi.left(orders[0].ServiceDate.toISOString(), 10);
+            // if (orders[0].Comments)
+            //   notes += (' Tech Notes: ' + orders[0].Comments);
+            // else
+            //   notes += (' Customer Issues: ' + orders[0].CustomerIssues);
             // module.customerHash[CustomerID].push({
             //   ServiceDate: orderList.get('ServiceDate'),
             //   TankPumped: orderList.get('TankPumped'),
@@ -286,16 +298,18 @@ var designToDo_ui = ui;
 
           data += '<div class="table">';
           data += '<table style="font-size: larger" class="table">';
-          data += '<thead>';
-          data += '<tr>';
-          data += '<th width="75%">' + name + '</th>';
-          data += '<th width="25%">' + city + '</th>';
-          data += '</tr>';
-          data += '</thead>';
+          // data += '<thead>';
+          // data += '<tr>';
+          // data += '<th width="75%">' + name + '</th>';
+          // data += '<th width="25%">' + city + '</th>';
+          // data += '</tr>';
+          // data += '</thead>';
           data += '<tbody>';
           data += '<tr>';
           data += '<td width="75%">';
-          data += address;
+          data += '<strong>' + name + '</strong>';
+          data += '<br>';
+          data += '<strong>' + address + ', ' + city + '</strong>';
           data += '<br>';
           data += notes;
           data += '</td>';
@@ -383,7 +397,7 @@ var designToDo_ui = ui;
   /**
    * force
    */
-  setTimeout(function () {
-    lastServiceReportCommand.execute(ui);
-  }, 100);
+  // setTimeout(function () {
+  //   lastServiceReportCommand.execute(ui);
+  // }, 100);
 }());
