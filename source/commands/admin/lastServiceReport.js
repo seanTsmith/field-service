@@ -9,8 +9,10 @@ var designToDo_ui = ui;
   module.viewState = 'CRITERIA';
   module.dateFrom = new tgi.Attribute({name: 'dateFrom', label: 'From', type: 'Date'});
   module.dateTo = new tgi.Attribute({name: 'dateTo', label: 'To', type: 'Date'});
+  module.customersPerPage = new tgi.Attribute({name: 'customersPerPage', label: 'Customers Per Page', type: 'Number'});
   module.dateFrom.value = new Date();
   module.dateTo.value = new Date();
+  module.customersPerPage.value = 10;
   var lastServiceReportPresentation = new tgi.Presentation();
   lastServiceReportPresentation.preRenderCallback = function (command, callback) {
     if (module.freshView) {
@@ -82,6 +84,7 @@ var designToDo_ui = ui;
     module.contents.push('-');
     module.contents.push(module.dateFrom);
     module.contents.push(module.dateTo);
+    module.contents.push(module.customersPerPage);
     module.contents.push('-');
     module.contents.push('>');
     module.contents.push(new tgi.Command({
@@ -246,7 +249,7 @@ var designToDo_ui = ui;
           if (pageHeadCountDown <= 0) {
             data += header2;
             header2 = '<h2 style="page-break-before:always;">Last Service Report' + dateRange + '</h2>';
-            pageHeadCountDown = 5;
+            pageHeadCountDown = module.customersPerPage.value;
           }
 
           // let name = customer.get('Customer') || '';
