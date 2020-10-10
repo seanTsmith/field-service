@@ -109,6 +109,7 @@ var designToDo_ui = ui;
     callbackDone();
     module.csvData = [];
     module.customerHash = {};
+    module.customerHashIgnore = {};
     /**
      * Get all customers
      */
@@ -137,8 +138,11 @@ var designToDo_ui = ui;
             var dateTo = moment(module.dateTo.value).add(1, 'days').toDate();
             dateFrom.setHours(0, 0, 0, 0);
             dateTo.setHours(0, 0, 0, 0);
-            if (ServiceDate >= dateFrom && ServiceDate < dateTo) {
-              var CustomerID = orderList.get('CustomerID');
+            var CustomerID = orderList.get('CustomerID');
+            if (ServiceDate >= dateFrom && ServiceDate >= dateTo) {
+              module.customerHashIgnore[CustomerID] = true;
+            }
+            if (ServiceDate >= dateFrom && ServiceDate <= dateTo) {
               if (!module.customerHash[CustomerID])
                 module.customerHash[CustomerID] = [];
               module.customerHash[CustomerID].push({
@@ -153,44 +157,13 @@ var designToDo_ui = ui;
           gotMore = orderList.moveNext();
         }
 
-        console.log(module.customerHash);
-
-        /**
-         * Create CSV struct from customers
-         */
-        // var gotMore = customerList.moveFirst();
-        // console.log('BOOH');
-        // while (gotMore) {
-        //   var name = customerList.get('Customer') || '';
-        //   if (module.customerHash[customerList.get('id')]) {
-        //     console.log('Customer: ' + name);
-        //     var space = name.indexOf(" ");
-        //     var firstName = name;
-        //     var lastName = '';
-        //     if (space > 0) {
-        //       firstName = tgi.left(name, space);
-        //       lastName = tgi.right(name, name.length - space);
-        //     }
-        //     // console.log('firstName ' + firstName + '.');
-        //     // console.log('lastName ' + lastName + '.');
-        //     module.csvData.push({
-        //       name: name,
-        //     });
-        //   }
-        //   gotMore = customerList.moveNext();
-        // }
-
-
+        // console.log(module.customerHash);
         /**
          * Done...
          */
-
         dateFrom = tgi.left('' + moment(module.dateFrom.value).toDate(), 15);
         dateTo = tgi.left('' + moment(module.dateTo.value).add(1, 'days').toDate(), 15);
         // module.fname = 'Bowen Service ' + dateFrom + ' to ' + dateTo + '.csv';
-
-        // downloadCSV({filename: module.fname});
-
         printReport(customers);
 
       });
@@ -213,7 +186,6 @@ var designToDo_ui = ui;
     data += '<div class="container">';
 
     reportDetails();
-
 
     data += '</div>';
     data += '</body>';
@@ -243,18 +215,13 @@ var designToDo_ui = ui;
       customer.sort({Customer: 1});
       let gotMore = customer.moveFirst();
       while (gotMore) {
-
-        if (module.customerHash[customer.get('id')]) {
-
+        let CustomerID = customer.get('id');
+        if (module.customerHash[CustomerID] && !module.customerHashIgnore[CustomerID]) {
           if (pageHeadCountDown <= 0) {
             data += header2;
             header2 = '<h2 style="page-break-before:always;">Last Service Report' + dateRange + '</h2>';
             pageHeadCountDown = module.customersPerPage.value;
           }
-
-          // let name = customer.get('Customer') || '';
-          // data += (name + '</BR>');
-
           let name = customer.get('Customer') || '(blank)';
           let city = customer.get('city') || '(unknown)'
           let address = customer.get('address1') || '(unknown)'
@@ -264,32 +231,13 @@ var designToDo_ui = ui;
           if (orders) {
             for (let order of orders) {
               // console.log(order);
-
-              notes += '<strong> '+tgi.left(order.ServiceDate.toISOString(), 10)+'</strong>';
+              notes += '<strong> ' + tgi.left(order.ServiceDate.toISOString(), 10) + '</strong>';
               if (order.Comments)
                 notes += (' Tech Notes: ' + order.Comments);
               else
                 notes += (' Customer Issues: ' + order.CustomerIssues);
-
-
             }
-
-            // notes = '' + tgi.left(orders[0].ServiceDate.toISOString(), 10);
-            // if (orders[0].Comments)
-            //   notes += (' Tech Notes: ' + orders[0].Comments);
-            // else
-            //   notes += (' Customer Issues: ' + orders[0].CustomerIssues);
-            // module.customerHash[CustomerID].push({
-            //   ServiceDate: orderList.get('ServiceDate'),
-            //   TankPumped: orderList.get('TankPumped'),
-            //   TankPumped1500: orderList.get('TankPumped1500'),
-            //   CustomerIssues: orderList.get('CustomerIssues'),
-            //   Comments: orderList.get('Comments'),
-            // });
-
           }
-
-
           let phones = '';
           if (customer.get('HomePhone'))
             phones += '<strong>H: </strong>' + customer.get('HomePhone') + '<br>';
@@ -298,15 +246,8 @@ var designToDo_ui = ui;
           if (customer.get('CellPhone'))
             phones += '<strong>C: </strong>' + customer.get('CellPhone') + '<br>';
 
-
           data += '<div class="table">';
           data += '<table style="font-size: larger" class="table">';
-          // data += '<thead>';
-          // data += '<tr>';
-          // data += '<th width="75%">' + name + '</th>';
-          // data += '<th width="25%">' + city + '</th>';
-          // data += '</tr>';
-          // data += '</thead>';
           data += '<tbody>';
           data += '<tr>';
           data += '<td width="75%">';
@@ -323,11 +264,8 @@ var designToDo_ui = ui;
           data += '</tbody>';
           data += '</table>';
           data += '</div>';
-          // data += '<hr>';
-
           pageHeadCountDown--;
         }
-
         gotMore = customer.moveNext();
       }
     }
@@ -341,61 +279,6 @@ var designToDo_ui = ui;
       module.contents.push('</br><b>Report Failed to print make sure popups are enabled for this site.</b></br>');
     callbackDone();
   }
-
-  /**
-   * Export Helpers
-   */
-  // function convertArrayOfObjectsToCSV(args) {
-  //   var result, ctr, keys, columnDelimiter, lineDelimiter, data;
-  //
-  //   data = args.data || null;
-  //   if (data == null || !data.length) {
-  //     return null;
-  //   }
-  //
-  //   columnDelimiter = args.columnDelimiter || ',';
-  //   lineDelimiter = args.lineDelimiter || '\n';
-  //
-  //   keys = Object.keys(data[0]);
-  //
-  //   result = '';
-  //   result += keys.join(columnDelimiter);
-  //   result += lineDelimiter;
-  //
-  //   data.forEach(function (item) {
-  //     ctr = 0;
-  //     keys.forEach(function (key) {
-  //       if (ctr > 0) result += columnDelimiter;
-  //
-  //       result += item[key];
-  //       ctr++;
-  //     });
-  //     result += lineDelimiter;
-  //   });
-  //
-  //   return result;
-  // }
-
-  // function downloadCSV(args) {
-  //   var data, filename, link;
-  //
-  //   var csv = convertArrayOfObjectsToCSV({
-  //     data: module.csvData
-  //   });
-  //   if (csv == null) return;
-  //
-  //   filename = args.filename || 'export.csv';
-  //
-  //   if (!csv.match(/^data:text\/csv/i)) {
-  //     csv = 'data:text/csv;charset=utf-8,' + csv;
-  //   }
-  //   data = encodeURI(csv);
-  //
-  //   link = document.createElement('a');
-  //   link.setAttribute('href', data);
-  //   link.setAttribute('download', filename);
-  //   link.click();
-  // }
 
   /**
    * force
